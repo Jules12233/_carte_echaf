@@ -10,99 +10,102 @@
 <style>
   body { margin:0; }
   #map { height: 100vh; width: 100vw; }
+
   .leaflet-popup-content img {
     width: 300px;
     height: auto;
+    margin-top: 8px;
+    border-radius: 8px;
+  }
+
+  .leaflet-popup-content b {
+    font-size: 16px;
   }
 </style>
+
 </head>
+
 <body>
 
 <div id="map"></div>
 
 <script>
+
+// =============================
+// INITIALISATION DE LA CARTE
+// =============================
+
 var map = L.map('map', {
   crs: L.CRS.Simple,
   minZoom: -2
 });
 
+// Dimensions de l’image
 var bounds = [[0,0], [4967,7021]];
-var image = L.imageOverlay('carte.jpeg', bounds).addTo(map);
+
+// Image de fond
+L.imageOverlay('carte.jpeg', bounds).addTo(map);
 map.fitBounds(bounds);
 
-// ---- MODE DEBUG POUR TROUVER LES COORDONNÉES ----
+// =============================
+// MODE DEBUG (clique pour coordonnées)
+// =============================
+
 map.on('click', function(e) {
   console.log("Coordonnées :", e.latlng);
 });
 
-// ---- AJOUTE TES 27 POINTS ICI ----
-// Remplace les coordonnées par celles obtenues dans la console
+// =============================
+// DONNÉES DES POINTS
+// =============================
 
-L.marker([1468, 2508]).addTo(map)
-  .bindPopup("<b>Tour de livraison sud HMA</b><br><img src='photo01.jpg'>");
+var points = [
 
-L.marker([1264, 1885]).addTo(map)
-  .bindPopup("<b>Tour de livraison HBA</b><br><img src='photo02.jpg'>");
+  { x:1468, y:2508, titre:"Tour de livraison Est HMA", image:"photo01.jpg" },
+  { x:1264, y:1885, titre:"Tour de livraison HBA", image:"photo02.jpg" },
+  { x:2072, y:2612, titre:"Cathédrale UP4", image:"photo03.jpg" },
+  { x:2197, y:2612, titre:"Cathédrale UP3", image:"photo05.jpg" },
+  { x:2573, y:2888, titre:"Rack eau", image:"photo06.jpg" },
+  { x:2453, y:3031, titre:"Accès TF1", image:"photo07.jpg" },
+  { x:2324, y:3031, titre:"Accès TF2", image:"photo08.jpg" },
+  { x:2196, y:3031, titre:"Accès TF3", image:"photo09.jpg" },
+  { x:2068, y:3031, titre:"Accès TF4", image:"photo10.jpg" },
+  { x:2044, y:3094, titre:"Ballon Ouest HVB", image:"photo11.jpg" },
+  { x:1882, y:2937, titre:"Rack liaison BL partie HLA", image:"photo12.jpg" },
+  { x:2056, y:2892, titre:"Échafaudage volant", image:"photo13.jpg" },
+  { x:2202, y:3100, titre:"TF3", image:"photo14.jpg" },
+  { x:2102, y:3130, titre:"TF4", image:"photo15.jpg" },
+  { x:2212, y:3185, titre:"Cheminée NO", image:"photo16.jpg" },
+  { x:1956, y:3098, titre:"Chemin de câbles HVB", image:"photo17.jpg" },
+  { x:1883, y:3130, titre:"Ballon Est HVB", image:"photo18.jpg" },
+  { x:1883, y:3416, titre:"Rack liaison BL partie HFD", image:"photo19.jpg" },
+  { x:1936, y:3533, titre:"Ext HFD", image:"photo20.jpg" },
+  { x:1946, y:3584, titre:"Intérieur HFD", image:"photo21.jpg" },
+  { x:1336, y:3488, titre:"Effluents huileux", image:"photo22.jpg" },
+  { x:1458, y:3842, titre:"Cuves huile", image:"photo23.jpg" },
+  { x:1885, y:2860, titre:"Tirage câble ext HLA", image:"photo24.jpg" },
+  { x:1945, y:3707, titre:"Rack incendie", image:"photo25.jpg" },
+  { x:2525, y:2483, titre:"Tour de livraison Ouest HMA", image:"photo26.jpg" },
+  { x:2070, y:2776, titre:"Fond UP4", image:"photo27.jpg" },
+  { x:2195, y:2776, titre:"Fond UP3", image:"photo28.jpg" },
+  { x:2325, y:2776, titre:"Fond UP2", image:"photo29.jpg" },
+  { x:2447, y:2776, titre:"Fond UP1", image:"photo30.jpg" }
 
-L.marker([2072, 2612]).addTo(map)
-  .bindPopup("<b>Cathédrale UP4</b><br><img src='photo03.jpg'>");
+];
 
-L.marker([2197, 2612]).addTo(map)
-  .bindPopup("<b>Cathédrale UP3</b><br><img src='photo05.jpg'>");
+// =============================
+// GÉNÉRATION AUTOMATIQUE DES MARQUEURS
+// =============================
 
-L.marker([2573, 2888]).addTo(map)
-  .bindPopup("<b>Rack eau</b><br><img src='photo06.jpg'>");
+points.forEach(function(p) {
 
-L.marker([2453, 3031]).addTo(map)
-  .bindPopup("<b>Accès TF1</b><br><img src='photo07.jpg'>");
+  L.marker([p.x, p.y]).addTo(map)
+    .bindPopup(`
+      <b>${p.titre}</b><br>
+      <img src="${p.image}">
+    `);
 
-L.marker([2324, 3031]).addTo(map)
-  .bindPopup("<b>Accès TF2</b><br><img src='photo08.jpg'>");
-
-L.marker([2196, 3031]).addTo(map)
-  .bindPopup("<b>Accès TF3</b><br><img src='photo09.jpg'>");
-
-L.marker([2068, 3031]).addTo(map)
-  .bindPopup("<b>Accès TF4</b><br><img src='photo10.jpg'>");
-
-L.marker([2044, 3094]).addTo(map)
-  .bindPopup("<b>Ballon Ouest HVB</b><br><img src='photo11.jpg'>");
-
-L.marker([1882, 2937]).addTo(map)
-  .bindPopup("<b>Rack liaison BL partie HLA</b><br><img src='photo12.jpg'>");
-
-L.marker([2056, 2892]).addTo(map)
-  .bindPopup("<b>Échafaudage volant</b><br><img src='photo13.jpg'>");
-
-L.marker([2202, 3100]).addTo(map)
-  .bindPopup("<b>TF3</b><br><img src='photo14.jpg'>");
-
-L.marker([2102, 3130]).addTo(map)
-  .bindPopup("<b>TF4</b><br><img src='photo15.jpg'>");
-
-L.marker([2212, 3185]).addTo(map)
-  .bindPopup("<b>Cheminée NO</b><br><img src='photo16.jpg'>");
-
-L.marker([1956, 3098]).addTo(map)
-  .bindPopup("<b>Chemin de câbles HVB</b><br><img src='photo17.jpg'>");
-
-L.marker([1883, 3130]).addTo(map)
-  .bindPopup("<b>Ballon Est HVB</b><br><img src='photo18.jpg'>");
-
-L.marker([1883, 3416]).addTo(map)
-  .bindPopup("<b>Rack liaison BL partie HFD</b><br><img src='photo19.jpg'>");
-
-L.marker([1936, 3533]).addTo(map)
-  .bindPopup("<b>Ext HFD</b><br><img src='photo20.jpg'>");
-
-L.marker([1946, 3584]).addTo(map)
-  .bindPopup("<b>Intérieur HFD</b><br><img src='photo21.jpg'>");
-
-L.marker([1336, 3488]).addTo(map)
-  .bindPopup("<b>Effluents huileux</b><br><img src='photo22.jpg'>");
-
-L.marker([1458, 3842]).addTo(map)
-  .bindPopup("<b>Cuves huile</b><br><img src='photo23.jpg'>");
+});
 
 </script>
 
