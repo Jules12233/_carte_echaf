@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <title>Carte interactive</title>
 
+<!-- ✅ CORRECT: vraies balises Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
@@ -11,7 +12,6 @@
 body { margin:0; font-family: Arial, sans-serif; }
 
 /* ================= SIDEBAR ================= */
-
 #sidebar {
   position: absolute;
   left: 0;
@@ -25,30 +25,15 @@ body { margin:0; font-family: Arial, sans-serif; }
   box-shadow: 2px 0 5px rgba(0,0,0,0.2);
   transition: transform 0.3s ease;
 }
-
-#sidebar.closed {
-  transform: translateX(-100%);
-}
-
-#sidebar h3 {
-  margin-top: 0;
-}
-
-#sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
+#sidebar.closed { transform: translateX(-100%); }
+#sidebar h3 { margin-top: 0; }
+#sidebar ul { list-style: none; padding: 0; }
 #sidebar li {
   padding: 8px;
   cursor: pointer;
   border-bottom: 1px solid #eee;
 }
-
-#sidebar li:hover {
-  background-color: #f0f0f0;
-}
-
+#sidebar li:hover { background-color: #f0f0f0; }
 .close-btn {
   position: absolute;
   top: 10px;
@@ -58,7 +43,6 @@ body { margin:0; font-family: Arial, sans-serif; }
 }
 
 /* ================= BOUTONS ================= */
-
 #menuButton {
   position: absolute;
   top: 15px;
@@ -70,7 +54,6 @@ body { margin:0; font-family: Arial, sans-serif; }
   border-radius: 4px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
-
 .btn-all {
   background: #007bff;
   color: white;
@@ -80,58 +63,82 @@ body { margin:0; font-family: Arial, sans-serif; }
   cursor: pointer;
   border-radius: 5px;
 }
-
-.btn-all:hover {
-  background: #0056b3;
-}
+.btn-all:hover { background: #0056b3; }
 
 /* ================= MAP ================= */
+#map { height: 100vh; width: 100vw; }
+.leaflet-popup-content img { width: 300px; border-radius: 8px; }
 
-#map {
-  height: 100vh;
-  width: 100vw;
-}
-
-.leaflet-popup-content img {
-  width: 300px;
-  border-radius: 8px;
-}
-
-/* 🔥 Déplacer boutons zoom à droite */
+/* 🔁 Déplacer boutons zoom à droite */
 .leaflet-top.leaflet-left {
   left: auto !important;
   right: 10px;
 }
+
+/* ================= SERVICE SELECT ================= */
+#serviceSelect {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 1500;
+  background: white;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+#serviceSelect button { margin-left: 4px; }
 </style>
 </head>
 
 <body>
 
-<div id="menuButton" onclick="toggleSidebar()">☰ Zones</div>
+<!-- Sélecteur de service -->
+<div id="serviceSelect">
+  Vous êtes :
+  <button onclick="setService('MONT')">MONT</button>
+  <button onclick="setService('ELEC')">ELEC</button>
+  <button onclick="setService('Autre')">Autre</button>
+</div>
 
+<!-- Sidebar zones -->
+<div id="menuButton" onclick="toggleSidebar()">☰ Zones</div>
 <div id="sidebar">
   <span class="close-btn" onclick="toggleSidebar()">✕</span>
   <h3>Zones</h3>
-
-  <!-- 🔥 Nouveau bouton -->
   <div class="btn-all" onclick="afficherTous()">Afficher tous</div>
-
   <ul id="zoneList"></ul>
 </div>
 
 <div id="map"></div>
 
 <script>
+// =============================
+// CONFIG API
+// =============================
+const API_URL = "https://script.google.com/macros/s/AKfycbyOicdw0c_8pi0psc4GU4oXp3-7e7qJU2vu_sFG27XE2AWebLrlENyzzRKu_E4iM_Hl/exec";
+
+let currentService = null;
+function setService(s) {
+  currentService = s;
+  alert("Vous êtes : " + s);
+}
+
+// =============================
+// UTIL: normaliser les titres (clé fiable)
+// =============================
+function normalize(str) {
+  return String(str)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // accents
+    .replace(/\s+/g, " ")            // espaces multiples -> 1
+    .trim()
+    .toLowerCase();
+}
 
 // =============================
 // INITIALISATION CARTE
 // =============================
-
-var map = L.map('map', {
-  crs: L.CRS.Simple,
-  minZoom: -2
-});
-
+var map = L.map('map', { crs: L.CRS.Simple, minZoom: -2 });
 var bounds = [[0,0], [4967,7021]];
 L.imageOverlay('carte.jpeg', bounds).addTo(map);
 map.fitBounds(bounds);
@@ -139,7 +146,6 @@ map.fitBounds(bounds);
 // =============================
 // DONNÉES
 // =============================
-
 var points = [
   { x:1468, y:2508, titre:"Tour de livraison Est HMA", image:"photo01.jpg", zone: "HMA 567" },
   { x:1264, y:1885, titre:"Tour de livraison HBA", image:"photo02.jpg", zone: "HBA" },
@@ -176,22 +182,45 @@ var points = [
 // MARQUEURS
 // =============================
 
+// Icônes Leaflet colorées (référentiel public)
+function coloredIcon(color) {
+  return new L.Icon({
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+    shadowUrl: "https://unpkg.com/leaflet/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+}
+const icons = {
+  utile: coloredIcon("green"),
+  démontable: coloredIcon("red"),
+  attente: coloredIcon("grey")
+};
+
 var markers = [];
 var zonesCenters = {};
 
 points.forEach(function(p){
+  const normID = normalize(p.titre);
 
-  var marker = L.marker([p.x, p.y])
-    .bindPopup(`<b>${p.titre}</b><br><img src="${p.image}">`)
-    .addTo(map);
+  var marker = L.marker([p.x, p.y], { icon: icons.attente })
+    .bindPopup(`
+      <b>${p.titre}</b><br>
+      <img src="${p.image}" alt="${p.titre}"><br><br>
+      <button onclick="sendVote('${normID}','utile')">Utile</button>
+      <button onclick="sendVote('${normID}','démontable')">Démontable</button>
+      <button onclick="sendVote('${normID}','attente')">En attente</button>
+    `);
 
+  marker.id = normID;       // ✅ clé fiable
   marker.zone = p.zone;
+
   markers.push(marker);
+  marker.addTo(map);
 
-  if (!zonesCenters[p.zone]) {
-    zonesCenters[p.zone] = { sumX:0, sumY:0, count:0 };
-  }
-
+  if (!zonesCenters[p.zone]) zonesCenters[p.zone] = { sumX:0, sumY:0, count:0 };
   zonesCenters[p.zone].sumX += p.x;
   zonesCenters[p.zone].sumY += p.y;
   zonesCenters[p.zone].count += 1;
@@ -200,31 +229,23 @@ points.forEach(function(p){
 // =============================
 // LISTE ZONES
 // =============================
-
 var zones = [...new Set(points.map(p => p.zone))];
 var zoneList = document.getElementById("zoneList");
 
 zones.forEach(function(zone){
-
   var li = document.createElement("li");
   li.textContent = zone;
   li.onclick = function(){ filtrer(zone); };
-
   zoneList.appendChild(li);
 });
 
 // =============================
 // FILTRAGE
 // =============================
-
 function filtrer(zone){
-
   markers.forEach(function(m){
-    if (m.zone === zone){
-      map.addLayer(m);
-    } else {
-      map.removeLayer(m);
-    }
+    if (m.zone === zone) map.addLayer(m);
+    else map.removeLayer(m);
   });
 
   var z = zonesCenters[zone];
@@ -233,26 +254,70 @@ function filtrer(zone){
 
   map.setView([centerX, centerY], map.getZoom());
 }
-
-// 🔥 NOUVELLE FONCTION
 function afficherTous(){
-
-  markers.forEach(function(m){
-    map.addLayer(m);
-  });
-
+  markers.forEach(function(m){ map.addLayer(m); });
   map.fitBounds(bounds);
 }
 
 // =============================
 // SIDEBAR
 // =============================
-
 function toggleSidebar(){
   document.getElementById("sidebar").classList.toggle("closed");
 }
 
-</script>
+// =============================
+// VOTE + MàJ immédiate
+// =============================
+function sendVote(id, etat){
+  if (!currentService){
+    alert("Choisissez d'abord votre service (MONT / ELEC / Autre).");
+    return;
+  }
 
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ id, service: currentService, etat })
+  })
+  .then(r => r.text())
+  .then(() => refreshStates())
+  .catch(err => console.error("Erreur POST:", err));
+}
+
+// =============================
+// CHARGER LES ÉTATS (no-cache + normalisation)
+// =============================
+
+function refreshStates(){
+  // bust cache côté navigateur + côté proxy Google
+  const url = API_URL + (API_URL.includes('?') ? '&' : '?') + 'v=' + Date.now();
+
+  fetch(url, { cache: "no-store" })
+    .then(r => {
+      if (!r.ok) throw new Error('GET ' + r.status);
+      return r.json();
+    })
+    .then(etats => {
+      // (debug) voir ce que renvoie l’API
+      console.log('ETATS depuis API:', etats);
+
+      // normaliser les clés reçues (au cas où le Sheet a des ID non normalisés)
+      const normalizedData = {};
+      Object.keys(etats).forEach(k => normalizedData[normalize(k)] = etats[k]);
+
+      markers.forEach(m => {
+        const etat = normalizedData[m.id] || "attente";
+        m.closePopup();                 // évite les incohérences d’icônes
+        m.setIcon(icons[etat]);
+      });
+    })
+    .catch(err => console.error("Erreur GET:", err));
+}
+
+
+// Premier chargement des états
+refreshStates();
+
+</script>
 </body>
 </html>
