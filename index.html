@@ -8,31 +8,123 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
-  body { margin:0; }
-  #map { height: 100vh; width: 100vw; }
+body { margin:0; font-family: Arial, sans-serif; }
 
-  .leaflet-popup-content img {
-    width: 300px;
-    height: auto;
-    margin-top: 8px;
-    border-radius: 8px;
-  }
+/* ================= SIDEBAR ================= */
 
-  .leaflet-popup-content b {
-    font-size: 16px;
-  }
+#sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  background: white;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 15px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+}
+
+#sidebar.closed {
+  transform: translateX(-100%);
+}
+
+#sidebar h3 {
+  margin-top: 0;
+}
+
+#sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+#sidebar li {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+#sidebar li:hover {
+  background-color: #f0f0f0;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* ================= BOUTONS ================= */
+
+#menuButton {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 1100;
+  background: white;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.btn-all {
+  background: #007bff;
+  color: white;
+  padding: 8px;
+  text-align: center;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.btn-all:hover {
+  background: #0056b3;
+}
+
+/* ================= MAP ================= */
+
+#map {
+  height: 100vh;
+  width: 100vw;
+}
+
+.leaflet-popup-content img {
+  width: 300px;
+  border-radius: 8px;
+}
+
+/* 🔥 Déplacer boutons zoom à droite */
+.leaflet-top.leaflet-left {
+  left: auto !important;
+  right: 10px;
+}
 </style>
-
 </head>
 
 <body>
+
+<div id="menuButton" onclick="toggleSidebar()">☰ Zones</div>
+
+<div id="sidebar">
+  <span class="close-btn" onclick="toggleSidebar()">✕</span>
+  <h3>Zones</h3>
+
+  <!-- 🔥 Nouveau bouton -->
+  <div class="btn-all" onclick="afficherTous()">Afficher tous</div>
+
+  <ul id="zoneList"></ul>
+</div>
 
 <div id="map"></div>
 
 <script>
 
 // =============================
-// INITIALISATION DE LA CARTE
+// INITIALISATION CARTE
 // =============================
 
 var map = L.map('map', {
@@ -40,72 +132,125 @@ var map = L.map('map', {
   minZoom: -2
 });
 
-// Dimensions de l’image
 var bounds = [[0,0], [4967,7021]];
-
-// Image de fond
 L.imageOverlay('carte.jpeg', bounds).addTo(map);
 map.fitBounds(bounds);
 
 // =============================
-// MODE DEBUG (clique pour coordonnées)
-// =============================
-
-map.on('click', function(e) {
-  console.log("Coordonnées :", e.latlng);
-});
-
-// =============================
-// DONNÉES DES POINTS
+// DONNÉES
 // =============================
 
 var points = [
-
-  { x:1468, y:2508, titre:"Tour de livraison Est HMA", image:"photo01.jpg" },
-  { x:1264, y:1885, titre:"Tour de livraison HBA", image:"photo02.jpg" },
-  { x:2072, y:2612, titre:"Cathédrale UP4", image:"photo03.jpg" },
-  { x:2197, y:2612, titre:"Cathédrale UP3", image:"photo05.jpg" },
-  { x:2573, y:2888, titre:"Rack eau", image:"photo06.jpg" },
-  { x:2453, y:3031, titre:"Accès TF1", image:"photo07.jpg" },
-  { x:2324, y:3031, titre:"Accès TF2", image:"photo08.jpg" },
-  { x:2196, y:3031, titre:"Accès TF3", image:"photo09.jpg" },
-  { x:2068, y:3031, titre:"Accès TF4", image:"photo10.jpg" },
-  { x:2044, y:3094, titre:"Ballon Ouest HVB", image:"photo11.jpg" },
-  { x:1882, y:2937, titre:"Rack liaison BL partie HLA", image:"photo12.jpg" },
-  { x:2056, y:2892, titre:"Échafaudage volant", image:"photo13.jpg" },
-  { x:2202, y:3100, titre:"TF3", image:"photo14.jpg" },
-  { x:2102, y:3130, titre:"TF4", image:"photo15.jpg" },
-  { x:2212, y:3185, titre:"Cheminée NO", image:"photo16.jpg" },
-  { x:1956, y:3098, titre:"Chemin de câbles HVB", image:"photo17.jpg" },
-  { x:1883, y:3130, titre:"Ballon Est HVB", image:"photo18.jpg" },
-  { x:1883, y:3416, titre:"Rack liaison BL partie HFD", image:"photo19.jpg" },
-  { x:1936, y:3533, titre:"Ext HFD", image:"photo20.jpg" },
-  { x:1946, y:3584, titre:"Intérieur HFD", image:"photo21.jpg" },
-  { x:1336, y:3488, titre:"Effluents huileux", image:"photo22.jpg" },
-  { x:1458, y:3842, titre:"Cuves huile", image:"photo23.jpg" },
-  { x:1885, y:2860, titre:"Tirage câble ext HLA", image:"photo24.jpg" },
-  { x:1945, y:3707, titre:"Rack incendie", image:"photo25.jpg" },
-  { x:2525, y:2483, titre:"Tour de livraison Ouest HMA", image:"photo26.jpg" },
-  { x:2070, y:2776, titre:"Fond UP4", image:"photo27.jpg" },
-  { x:2195, y:2776, titre:"Fond UP3", image:"photo28.jpg" },
-  { x:2325, y:2776, titre:"Fond UP2", image:"photo29.jpg" },
-  { x:2447, y:2776, titre:"Fond UP1", image:"photo30.jpg" }
-
+  { x:1468, y:2508, titre:"Tour de livraison Est HMA", image:"photo01.jpg", zone: "HMA 567" },
+  { x:1264, y:1885, titre:"Tour de livraison HBA", image:"photo02.jpg", zone: "HBA" },
+  { x:2072, y:2612, titre:"Cathédrale UP4", image:"photo03.jpg", zone: "HMA 1234"  },
+  { x:2197, y:2612, titre:"Cathédrale UP3", image:"photo05.jpg", zone: "HMA 1234"  },
+  { x:2573, y:2888, titre:"Rack eau", image:"photo06.jpg", zone: "HYA"  },
+  { x:2453, y:3031, titre:"Accès TF1", image:"photo07.jpg", zone: "HQA 1234"  },
+  { x:2324, y:3031, titre:"Accès TF2", image:"photo08.jpg", zone: "HQA 1234"  },
+  { x:2196, y:3031, titre:"Accès TF3", image:"photo09.jpg", zone: "HQA 1234"  },
+  { x:2068, y:3031, titre:"Accès TF4", image:"photo10.jpg", zone: "HQA 1234"  },
+  { x:2044, y:3094, titre:"Ballon Ouest HVB", image:"photo11.jpg", zone: "HVB"  },
+  { x:1882, y:2937, titre:"Rack liaison BL partie HLA", image:"photo12.jpg", zone: "HVB"  },
+  { x:2056, y:2892, titre:"Échafaudage volant", image:"photo13.jpg", zone: "HMA 1234"  },
+  { x:2202, y:3100, titre:"TF3", image:"photo14.jpg", zone: "HQA 1234"  },
+  { x:2102, y:3130, titre:"TF4", image:"photo15.jpg", zone: "HQA 1234"  },
+  { x:2212, y:3185, titre:"Cheminée NO", image:"photo16.jpg", zone: "HQA 1234"  },
+  { x:1956, y:3098, titre:"Chemin de câbles HVB", image:"photo17.jpg", zone: "HVB"  },
+  { x:1883, y:3130, titre:"Ballon Est HVB", image:"photo18.jpg", zone: "HVB"  },
+  { x:1883, y:3416, titre:"Rack liaison BL partie HFD", image:"photo19.jpg", zone: "HFD"  },
+  { x:1936, y:3533, titre:"Ext HFD", image:"photo20.jpg", zone: "HFD"  },
+  { x:1946, y:3584, titre:"Intérieur HFD", image:"photo21.jpg", zone: "HFD"  },
+  { x:1336, y:3488, titre:"Effluents huileux", image:"photo22.jpg", zone: "HXA"  },
+  { x:1458, y:3842, titre:"Cuves huile", image:"photo23.jpg", zone: "HFA"  },
+  { x:1885, y:2860, titre:"Tirage câble ext HLA", image:"photo24.jpg", zone: "HLA"  },
+  { x:1945, y:3707, titre:"Rack incendie", image:"photo25.jpg", zone: "HFD"  },
+  { x:2525, y:2483, titre:"Tour de livraison Ouest HMA", image:"photo26.jpg", zone: "HMA 1234"  },
+  { x:2070, y:2776, titre:"Fond UP4", image:"photo27.jpg", zone: "HMA 1234"  },
+  { x:2195, y:2776, titre:"Fond UP3", image:"photo28.jpg", zone: "HMA 1234"  },
+  { x:2325, y:2776, titre:"Fond UP2", image:"photo29.jpg", zone: "HMA 1234"  },
+  { x:2447, y:2776, titre:"Fond UP1", image:"photo30.jpg", zone: "HMA 1234" }
 ];
 
 // =============================
-// GÉNÉRATION AUTOMATIQUE DES MARQUEURS
+// MARQUEURS
 // =============================
 
-points.forEach(function(p) {
+var markers = [];
+var zonesCenters = {};
 
-  L.marker([p.x, p.y]).addTo(map)
-    .bindPopup(`
-      <b>${p.titre}</b><br>
-      <img src="${p.image}">
-    `);
+points.forEach(function(p){
 
+  var marker = L.marker([p.x, p.y])
+    .bindPopup(`<b>${p.titre}</b><br><img src="${p.image}">`)
+    .addTo(map);
+
+  marker.zone = p.zone;
+  markers.push(marker);
+
+  if (!zonesCenters[p.zone]) {
+    zonesCenters[p.zone] = { sumX:0, sumY:0, count:0 };
+  }
+
+  zonesCenters[p.zone].sumX += p.x;
+  zonesCenters[p.zone].sumY += p.y;
+  zonesCenters[p.zone].count += 1;
 });
+
+// =============================
+// LISTE ZONES
+// =============================
+
+var zones = [...new Set(points.map(p => p.zone))];
+var zoneList = document.getElementById("zoneList");
+
+zones.forEach(function(zone){
+
+  var li = document.createElement("li");
+  li.textContent = zone;
+  li.onclick = function(){ filtrer(zone); };
+
+  zoneList.appendChild(li);
+});
+
+// =============================
+// FILTRAGE
+// =============================
+
+function filtrer(zone){
+
+  markers.forEach(function(m){
+    if (m.zone === zone){
+      map.addLayer(m);
+    } else {
+      map.removeLayer(m);
+    }
+  });
+
+  var z = zonesCenters[zone];
+  var centerX = z.sumX / z.count;
+  var centerY = z.sumY / z.count;
+
+  map.setView([centerX, centerY], map.getZoom());
+}
+
+// 🔥 NOUVELLE FONCTION
+function afficherTous(){
+
+  markers.forEach(function(m){
+    map.addLayer(m);
+  });
+
+  map.fitBounds(bounds);
+}
+
+// =============================
+// SIDEBAR
+// =============================
+
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("closed");
+}
 
 </script>
 
