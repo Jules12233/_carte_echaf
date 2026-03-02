@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Test POST Apps Script</title>
+<button id="btn">Envoyer vote test</button>
+<pre id="out"></pre>
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwN3LcBWt6G8s61k6prNiTQO54P2JhVCB_SzXnTjjbdMegAHMQIcWeAxa86QL0Xwqql/exec";
+
+document.getElementById('btn').onclick = () => {
+  const form = new FormData();
+  form.append("id", "test-id");
+  form.append("service", "ELEC");
+  form.append("etat", "utile");
+
+  fetch(API_URL, { method:"POST", body: form })
+    .then(r => r.text())
+    .then(txt => {
+      document.getElementById('out').textContent = "Réponse: " + txt;
+    })
+    .catch(err => {
+      document.getElementById('out').textContent = "Erreur fetch: " + err;
+    });
+};
+</script>
