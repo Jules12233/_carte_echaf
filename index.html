@@ -1,345 +1,375 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Carte interactive</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Carte interactive</title>
 
-<!-- Leaflet -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<style>
-  body { margin:0; font-family: Arial, sans-serif; }
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; }
 
-  /* ================= SIDEBAR ================= */
-  #sidebar {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 260px;
-    height: 100vh;
-    background: white;
-    z-index: 1000;
-    overflow-y: auto;
-    padding: 15px;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
-    transition: transform 0.3s ease;
-  }
-  #sidebar.closed { transform: translateX(-100%); }
-  #sidebar h3 { margin-top: 0; }
-  #sidebar ul { list-style: none; padding: 0; }
-  #sidebar li {
-    padding: 8px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-  }
-  #sidebar li:hover { background-color: #f0f0f0; }
-  .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
-    font-weight: bold;
-  }
+    /* ================= SIDEBAR ================= */
+    #sidebar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 260px;
+      height: 100vh;
+      background: white;
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 15px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+    #sidebar.closed { transform: translateX(-100%); }
+    #sidebar h3 { margin-top: 0; }
+    #sidebar ul { list-style: none; padding: 0; }
+    #sidebar li {
+      padding: 8px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+    #sidebar li:hover { background-color: #f0f0f0; }
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
 
-  /* ================= BOUTONS ================= */
-  #menuButton {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    z-index: 1100;
-    background: white;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-  }
-  .btn-all {
-    background: #007bff;
-    color: white;
-    padding: 8px;
-    text-align: center;
-    margin-bottom: 10px;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  .btn-all:hover { background: #0056b3; }
+    /* ================= BOUTONS ================= */
+    #menuButton {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      z-index: 1100;
+      background: white;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .btn-all {
+      background: #007bff;
+      color: white;
+      padding: 8px;
+      text-align: center;
+      margin-bottom: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .btn-all:hover { background: #0056b3; }
 
-  /* ================= MAP ================= */
-  #map { height: 100vh; width: 100vw; }
-  .leaflet-popup-content img { width: 300px; border-radius: 8px; }
+    /* ================= MAP ================= */
+    #map { height: 100vh; width: 100vw; }
+    .leaflet-popup-content img { width: 300px; border-radius: 8px; }
 
-  /* Déplacement zoom */
-  .leaflet-top.leaflet-left {
-    left: auto !important;
-    right: 10px;
-  }
+    /* Déplacement zoom */
+    .leaflet-top.leaflet-left {
+      left: auto !important;
+      right: 10px;
+    }
 
-  /* ================= SERVICE SELECT ================= */
-  #serviceSelect {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    z-index: 1500;
-    background: white;
-    padding: 10px;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  }
-  #serviceSelect button { margin-left: 4px; }
-</style>
+    /* ================= SERVICE SELECT ================= */
+    #serviceSelect {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      z-index: 1500;
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    #serviceSelect button { margin-left: 4px; }
+  </style>
 </head>
 
 <body>
 
-<!-- Sélecteur de service -->
-<div id="serviceSelect">
-  Vous êtes :
-  <button onclick="setService('MONT')">MONT</button>
-  <button onclick="setService('ELEC')">ELEC</button>
-  <button onclick="setService('Autre')">Autre</button>
-</div>
+  <!-- Sélecteur de service -->
+  <div id="serviceSelect">
+    Vous êtes :
+    <button onclick="setService('MONT')">MONT</button>
+    <button onclick="setService('ELEC')">ELEC</button>
+    <button onclick="setService('Autre')">Autre</button>
+  </div>
 
-<!-- Sidebar zones -->
-<div id="menuButton" onclick="toggleSidebar()">☰ Zones</div>
-<div id="sidebar" class="closed">
-  <span class="close-btn" onclick="toggleSidebar()">✕</span>
-  <h3>Zones</h3>
-  <div class="btn-all" onclick="afficherTous()">Afficher tous</div>
-  <ul id="zoneList"></ul>
-</div>
+  <!-- Sidebar zones -->
+  <div id="menuButton" onclick="toggleSidebar()">☰ Zones</div>
+  <div id="sidebar" class="closed">
+    <span class="close-btn" onclick="toggleSidebar()">✕</span>
+    <h3>Zones</h3>
+    <div class="btn-all" onclick="afficherTous()">Afficher tous</div>
+    <ul id="zoneList"></ul>
+  </div>
 
-<div id="map"></div>
+  <div id="map"></div>
 
-<script>
-// =============================
-// CONFIG GOOGLE FORM + API
-// =============================
-// ⚠️ Remplacez <FORM_ID> par l'identifiant de votre Google Form (visible dans l'URL publique entre /d/e/ et /viewform)
-const FORM_ID = "<FORM_ID>";
-const FORM_ACTION = `https://docs.google.com/forms/d/e/1FAIpQLSfbclx6nrgmB311-Rmx7z3tJ_8Kq2Ao1eaZETsrPoemIY130A/formResponse`;
+  <script>
+  // =============================
+  // CONFIG GOOGLE FORM + API
+  // =============================
 
-// Entrées Google Forms fournies par Jules
-const GF_ENTRY = {
-  id: "entry.1330851147",        // champ texte "id"
-  service: "entry.662387729",    // radio: MONT | ELEC | Autre
-  etat: "entry.1551408270"       // radio: utile | demontable | attente
-};
+  // POST vers Google Forms (ton ID public)
+  const FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSfbclx6nrgmB311-Rmx7z3tJ_8Kq2Ao1eaZETsrPoemIY130A/formResponse";
 
-// API Apps Script existante pour récupérer les états (GET)
-const API_URL = "https://script.google.com/macros/s/AKfycbzXQZrjZnuFVxwLusJDJxoRKBvBM5USTA7udaoTKR4US1wnIOZq3EAcDLhWYRxxoYudfg/exec";
+  // Entrées Google Forms identifiées
+  const GF_ENTRY = {
+    id: "entry.1330851147",        // champ texte "id"
+    service: "entry.662387729",    // radio: MONT | ELEC | Autre
+    etat: "entry.1551408270",      // radio: utile | demontable | attente
+    nom: "entry.1649010906"       // texte: nom utilisateur
+  };
 
-let currentService = null;
-function setService(s) {
-  currentService = s;
-  alert("Vous êtes : " + s);
-}
+  // API Apps Script existante pour récupérer les états (GET)
+  const API_URL = "https://script.google.com/macros/s/AKfycbzXQZrjZnuFVxwLusJDJxoRKBvBM5USTA7udaoTKR4US1wnIOZq3EAcDLhWYRxxoYudfg/exec";
 
-// =============================
-// UTIL: normaliser
-// =============================
-function normalize(str) {
-  return String(str)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
+  // =============================
+  // GESTION UTILISATEUR (service + nom)
+  // =============================
+  let currentService = null;
+  let currentUser = null;
 
-// =============================
-// INITIALISATION CARTE
-// =============================
-var map = L.map('map', { crs: L.CRS.Simple, minZoom: -2 });
-var bounds = [[0,0], [4967,7021]];
-L.imageOverlay('carte.jpeg', bounds).addTo(map);
-map.fitBounds(bounds);
+  function setService(s) {
+    currentService = s;
 
-// =============================
-// DONNÉES
-// =============================
-var points = [
-  { x:1468, y:2508, titre:"Tour de livraison Est HMA", image:"photo01.jpg", zone: "HMA 567" },
-  { x:1264, y:1885, titre:"Tour de livraison HBA", image:"photo02.jpg", zone: "HBA" },
-  { x:2072, y:2612, titre:"Cathédrale UP4", image:"photo03.jpg", zone: "HMA 1234"  },
-  { x:2197, y:2612, titre:"Cathédrale UP3", image:"photo05.jpg", zone: "HMA 1234"  },
-  { x:2573, y:2888, titre:"Rack eau", image:"photo06.jpg", zone: "HYA"  },
-  { x:2453, y:3031, titre:"Accès TF1", image:"photo07.jpg", zone: "HQA 1234"  },
-  { x:2324, y:3031, titre:"Accès TF2", image:"photo08.jpg", zone: "HQA 1234"  },
-  { x:2196, y:3031, titre:"Accès TF3", image:"photo09.jpg", zone: "HQA 1234"  },
-  { x:2068, y:3031, titre:"Accès TF4", image:"photo10.jpg", zone: "HQA 1234"  },
-  { x:2044, y:3094, titre:"Ballon Ouest HVB", image:"photo11.jpg", zone: "HVB"  },
-  { x:1882, y:2937, titre:"Rack liaison BL partie HLA", image:"photo12.jpg", zone: "HVB"  },
-  { x:2056, y:2892, titre:"Échafaudage volant", image:"photo13.jpg", zone: "HMA 1234"  },
-  { x:2202, y:3100, titre:"TF3", image:"photo14.jpg", zone: "HQA 1234"  },
-  { x:2102, y:3130, titre:"TF4", image:"photo15.jpg", zone: "HQA 1234"  },
-  { x:2212, y:3185, titre:"Cheminée NO", image:"photo16.jpg", zone: "HQA 1234"  },
-  { x:1956, y:3098, titre:"Chemin de câbles HVB", image:"photo17.jpg", zone: "HVB"  },
-  { x:1883, y:3130, titre:"Ballon Est HVB", image:"photo18.jpg", zone: "HVB"  },
-  { x:1883, y:3416, titre:"Rack liaison BL partie HFD", image:"photo19.jpg", zone: "HFD"  },
-  { x:1936, y:3533, titre:"Ext HFD", image:"photo20.jpg", zone: "HFD"  },
-  { x:1946, y:3584, titre:"Intérieur HFD", image:"photo21.jpg", zone: "HFD"  },
-  { x:1336, y:3488, titre:"Effluents huileux", image:"photo22.jpg", zone: "HXA"  },
-  { x:1458, y:3842, titre:"Cuves huile", image:"photo23.jpg", zone: "HFA"  },
-  { x:1885, y:2860, titre:"Tirage câble ext HLA", image:"photo24.jpg", zone: "HLA"  },
-  { x:1945, y:3707, titre:"Rack incendie", image:"photo25.jpg", zone: "HFD"  },
-  { x:2525, y:2483, titre:"Tour de livraison Ouest HMA", image:"photo26.jpg", zone: "HMA 1234"  },
-  { x:2070, y:2776, titre:"Fond UP4", image:"photo27.jpg", zone: "HMA 1234"  },
-  { x:2195, y:2776, titre:"Fond UP3", image:"photo28.jpg", zone: "HMA 1234"  },
-  { x:2325, y:2776, titre:"Fond UP2", image:"photo29.jpg", zone: "HMA 1234"  },
-  { x:2447, y:2776, titre:"Fond UP1", image:"photo30.jpg", zone: "HMA 1234" }
-];
+    const nom = prompt("Entrez votre nom :");
+    if (!nom || nom.trim() === "") {
+      alert("Nom obligatoire !");
+      currentService = null;
+      return;
+    }
 
-// =============================
-// MARQUEURS
-// =============================
-function coloredIcon(color) {
-  return new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-    shadowUrl: "https://unpkg.com/leaflet/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-  });
-}
-
-const icons = {
-  utile: coloredIcon("green"),
-  demontable: coloredIcon("red"),
-  attente: coloredIcon("grey")
-};
-
-var markers = [];
-var zonesCenters = {};
-
-points.forEach(function(p){
-  const normID = normalize(p.titre);
-
-  var marker = L.marker([p.x, p.y], { icon: icons.attente })
-    .bindPopup(`
-      <b>${p.titre}</b><br>
-      <img src="${p.image}" alt="${p.titre}" style="width:300px;border-radius:8px;"><br><br>
-      <button onclick="sendVote('${normID}','utile')">Utile</button>
-      <button onclick="sendVote('${normID}','demontable')">Démontable</button>
-      <button onclick="sendVote('${normID}','attente')">En attente</button>
-    `);
-
-  marker.id = normID;
-  marker.zone = p.zone;
-  markers.push(marker);
-  marker.addTo(map);
-
-  if (!zonesCenters[p.zone])
-    zonesCenters[p.zone] = { sumX:0, sumY:0, count:0 };
-
-  zonesCenters[p.zone].sumX += p.x;
-  zonesCenters[p.zone].sumY += p.y;
-  zonesCenters[p.zone].count += 1;
-});
-
-// =============================
-// LISTE ZONES
-// =============================
-var zones = [...new Set(points.map(p => p.zone))];
-var zoneList = document.getElementById("zoneList");
-
-zones.forEach(function(zone){
-  var li = document.createElement("li");
-  li.textContent = zone;
-  li.onclick = function(){ filtrer(zone); };
-  zoneList.appendChild(li);
-});
-
-// =============================
-// FILTRAGE
-// =============================
-function filtrer(zone){
-  markers.forEach(function(m){
-    if (m.zone === zone) map.addLayer(m);
-    else map.removeLayer(m);
-  });
-
-  var z = zonesCenters[zone];
-  var centerX = z.sumX / z.count;
-  var centerY = z.sumY / z.count;
-
-  map.setView([centerX, centerY], map.getZoom());
-}
-
-function afficherTous(){
-  markers.forEach(function(m){ map.addLayer(m); });
-  map.fitBounds(bounds);
-}
-
-// =============================
-// SIDEBAR
-// =============================
-function toggleSidebar(){
-  document.getElementById("sidebar").classList.toggle("closed");
-}
-
-// =============================
-// POST VOTE (Google Form)
-// =============================
-function sendVote(id, etat){
-  if (!currentService){
-    alert("Choisissez d'abord votre service.");
-    return;
+    currentUser = nom.trim();
+    alert("Bienvenue " + currentUser + " (" + currentService + ")");
   }
 
-  const body = new URLSearchParams();
-  body.append(GF_ENTRY.id, id);
-  body.append(GF_ENTRY.service, currentService); // MONT | ELEC | Autre
-  body.append(GF_ENTRY.etat, etat);              // utile | demontable | attente
+  // =============================
+  // UTIL: normaliser
+  // =============================
+  function normalize(str) {
+    return String(str)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
 
-  fetch(FORM_ACTION, {
-    method: "POST",
-    mode: "no-cors", // CORS opaque, mais l'envoi est bien effectué
-    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-    body
-  })
-  .then(() => {
-    // Mise à jour optimiste
-    const m = markers.find(m => m.id === id);
-    if (m) {
-      m.closePopup();
-      m.setIcon(icons[etat] || icons.attente);
+  // =============================
+  // INITIALISATION CARTE
+  // =============================
+  var map = L.map('map', { crs: L.CRS.Simple, minZoom: -2 });
+  var bounds = [[0,0], [4967,7021]];
+  L.imageOverlay('carte.jpeg', bounds).addTo(map);
+  map.fitBounds(bounds);
+
+  // =============================
+  // DONNÉES
+  // =============================
+  var points = [
+    { x:1468, y:2508, titre:"Tour de livraison Est HMA", image:"photo01.jpg", zone: "HMA 567" },
+    { x:1264, y:1885, titre:"Tour de livraison HBA", image:"photo02.jpg", zone: "HBA" },
+    { x:2072, y:2612, titre:"Cathédrale UP4", image:"photo03.jpg", zone: "HMA 1234"  },
+    { x:2197, y:2612, titre:"Cathédrale UP3", image:"photo05.jpg", zone: "HMA 1234"  },
+    { x:2573, y:2888, titre:"Rack eau", image:"photo06.jpg", zone: "HYA"  },
+    { x:2453, y:3031, titre:"Accès TF1", image:"photo07.jpg", zone: "HQA 1234"  },
+    { x:2324, y:3031, titre:"Accès TF2", image:"photo08.jpg", zone: "HQA 1234"  },
+    { x:2196, y:3031, titre:"Accès TF3", image:"photo09.jpg", zone: "HQA 1234"  },
+    { x:2068, y:3031, titre:"Accès TF4", image:"photo10.jpg", zone: "HQA 1234"  },
+    { x:2044, y:3094, titre:"Ballon Ouest HVB", image:"photo11.jpg", zone: "HVB"  },
+    { x:1882, y:2937, titre:"Rack liaison BL partie HLA", image:"photo12.jpg", zone: "HVB"  },
+    { x:2056, y:2892, titre:"Échafaudage volant", image:"photo13.jpg", zone: "HMA 1234"  },
+    { x:2202, y:3100, titre:"TF3", image:"photo14.jpg", zone: "HQA 1234"  },
+    { x:2102, y:3130, titre:"TF4", image:"photo15.jpg", zone: "HQA 1234"  },
+    { x:2212, y:3185, titre:"Cheminée NO", image:"photo16.jpg", zone: "HQA 1234"  },
+    { x:1956, y:3098, titre:"Chemin de câbles HVB", image:"photo17.jpg", zone: "HVB"  },
+    { x:1883, y:3130, titre:"Ballon Est HVB", image:"photo18.jpg", zone: "HVB"  },
+    { x:1883, y:3416, titre:"Rack liaison BL partie HFD", image:"photo19.jpg", zone: "HFD"  },
+    { x:1936, y:3533, titre:"Ext HFD", image:"photo20.jpg", zone: "HFD"  },
+    { x:1946, y:3584, titre:"Intérieur HFD", image:"photo21.jpg", zone: "HFD"  },
+    { x:1336, y:3488, titre:"Effluents huileux", image:"photo22.jpg", zone: "HXA"  },
+    { x:1458, y:3842, titre:"Cuves huile", image:"photo23.jpg", zone: "HFA"  },
+    { x:1885, y:2860, titre:"Tirage câble ext HLA", image:"photo24.jpg", zone: "HLA"  },
+    { x:1945, y:3707, titre:"Rack incendie", image:"photo25.jpg", zone: "HFD"  },
+    { x:2525, y:2483, titre:"Tour de livraison Ouest HMA", image:"photo26.jpg", zone: "HMA 1234"  },
+    { x:2070, y:2776, titre:"Fond UP4", image:"photo27.jpg", zone: "HMA 1234"  },
+    { x:2195, y:2776, titre:"Fond UP3", image:"photo28.jpg", zone: "HMA 1234"  },
+    { x:2325, y:2776, titre:"Fond UP2", image:"photo29.jpg", zone: "HMA 1234"  },
+    { x:2447, y:2776, titre:"Fond UP1", image:"photo30.jpg", zone: "HMA 1234" }
+  ];
+
+  // =============================
+  // MARQUEURS
+  // =============================
+  function coloredIcon(color) {
+    return new L.Icon({
+      iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+      shadowUrl: "https://unpkg.com/leaflet/dist/images/marker-shadow.png",
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+  }
+
+  const icons = {
+    utile: coloredIcon("green"),
+    demontable: coloredIcon("red"),
+    attente: coloredIcon("grey")
+  };
+
+  var markers = [];
+  var zonesCenters = {};
+
+  points.forEach(function(p){
+    const normID = normalize(p.titre);
+
+    var marker = L.marker([p.x, p.y], { icon: icons.attente })
+      .bindPopup(`
+        <b>${p.titre}</b><br>
+        <img src="${p.image}" alt="${p.titre}" style="width:300px;border-radius:8px;"><br><br>
+        <button onclick="sendVote('${normID}','utile')">Utile</button>
+        <button onclick="sendVote('${normID}','demontable')">Démontable</button>
+        <button onclick="sendVote('${normID}','attente')">En attente</button>
+      `);
+
+    marker.id = normID;
+    marker.zone = p.zone;
+    markers.push(marker);
+    marker.addTo(map);
+
+    if (!zonesCenters[p.zone])
+      zonesCenters[p.zone] = { sumX:0, sumY:0, count:0 };
+
+    zonesCenters[p.zone].sumX += p.x;
+    zonesCenters[p.zone].sumY += p.y;
+    zonesCenters[p.zone].count += 1;
+  });
+
+  // =============================
+  // LISTE ZONES
+  // =============================
+  var zones = [...new Set(points.map(p => p.zone))];
+  var zoneList = document.getElementById("zoneList");
+
+  zones.forEach(function(zone){
+    var li = document.createElement("li");
+    li.textContent = zone;
+    li.onclick = function(){ filtrer(zone); };
+    zoneList.appendChild(li);
+  });
+
+  // =============================
+  // FILTRAGE
+  // =============================
+  function filtrer(zone){
+    markers.forEach(function(m){
+      if (m.zone === zone) map.addLayer(m);
+      else map.removeLayer(m);
+    });
+
+    var z = zonesCenters[zone];
+    var centerX = z.sumX / z.count;
+    var centerY = z.sumY / z.count;
+
+    map.setView([centerX, centerY], map.getZoom());
+  }
+
+  function afficherTous(){
+    markers.forEach(function(m){ map.addLayer(m); });
+    map.fitBounds(bounds);
+  }
+
+  // =============================
+  // SIDEBAR
+  // =============================
+  function toggleSidebar(){
+    document.getElementById("sidebar").classList.toggle("closed");
+  }
+
+  // =============================
+  // POST VOTE (Google Form)
+  // =============================
+  function sendVote(id, etat){
+    if (!currentService){
+      alert("Choisissez d'abord votre service.");
+      return;
     }
-    // Confirmation depuis l'API (source de vérité)
-    setTimeout(refreshStates, 1200);
-  })
-  .catch(err => console.error("Erreur POST vers Google Forms:", err));
-}
+    if (!currentUser){
+      const nom = prompt("Entrez votre nom :");
+      if (!nom || nom.trim() === "") {
+        alert("Nom obligatoire !");
+        return;
+      }
+      currentUser = nom.trim();
+    }
 
-// =============================
-// GET ETATS (anti-cache)
-// =============================
-function refreshStates(){
-  const url = API_URL + "?v=" + Date.now();
+    const body = new URLSearchParams();
+    body.append(GF_ENTRY.id, id);
+    body.append(GF_ENTRY.service, currentService); // MONT | ELEC | Autre
+    body.append(GF_ENTRY.etat, etat);              // utile | demontable | attente
+    body.append(GF_ENTRY.nom, currentUser);        // nom
 
-  fetch(url, { cache: "no-store" })
-    .then(r => r.json())
-    .then(etats => {
-      console.log("ETATS depuis API :", etats);
-
-      const normalizedData = {};
-      Object.keys(etats).forEach(k => {
-        normalizedData[normalize(k)] = etats[k];
-      });
-
-      markers.forEach(m => {
-        const etat = normalizedData[m.id] || "attente"; // utile | demontable | attente
+    fetch(FORM_ACTION, {
+      method: "POST",
+      mode: "no-cors", // CORS opaque, mais l'envoi est bien effectué
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body
+    })
+    .then(() => {
+      // Mise à jour optimiste
+      const m = markers.find(m => m.id === id);
+      if (m) {
         m.closePopup();
         m.setIcon(icons[etat] || icons.attente);
-      });
+      }
+      // Confirmation depuis l'API (source de vérité)
+      setTimeout(refreshStates, 1200);
     })
-    .catch(err => console.error("Erreur GET:", err));
-}
+    .catch(err => console.error("Erreur POST vers Google Forms:", err));
+  }
 
-// Premier chargement des états
-refreshStates();
-</script>
+  // =============================
+  // GET ETATS (anti-cache)
+  // =============================
+  function refreshStates(){
+    const url = API_URL + "?v=" + Date.now();
+
+    fetch(url, { cache: "no-store" })
+      .then(r => r.json())
+      .then(etats => {
+        console.log("ETATS depuis API :", etats);
+
+        const normalizedData = {};
+        Object.keys(etats).forEach(k => {
+          // On normalise la clé (id) ET la valeur (etat)
+          normalizedData[normalize(k)] = normalize(etats[k]);
+        });
+
+        markers.forEach(m => {
+          const etat = normalizedData[m.id] || "attente"; // utile | demontable | attente
+          m.closePopup();
+          m.setIcon(icons[etat] || icons.attente);
+        });
+      })
+      .catch(err => console.error("Erreur GET:", err));
+  }
+
+  // Premier chargement des états
+  refreshStates();
+
+  // (Optionnel) petit filet pour repérer les erreurs JS en prod
+  window.addEventListener('error', (e) => {
+    console.error("JS error:", e.message, e.filename, e.lineno);
+  });
+  </script>
 </body>
 </html>
