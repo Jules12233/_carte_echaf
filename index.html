@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
 <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Carte interactive</title>
 
 <!-- Leaflet -->
@@ -9,84 +10,84 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
-body { margin:0; font-family: Arial, sans-serif; }
+  body { margin:0; font-family: Arial, sans-serif; }
 
-/* ================= SIDEBAR ================= */
-#sidebar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 260px;
-  height: 100vh;
-  background: white;
-  z-index: 1000;
-  overflow-y: auto;
-  padding: 15px;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
-  transition: transform 0.3s ease;
-}
-#sidebar.closed { transform: translateX(-100%); }
-#sidebar h3 { margin-top: 0; }
-#sidebar ul { list-style: none; padding: 0; }
-#sidebar li {
-  padding: 8px;
-  cursor: pointer;
-  border-bottom: 1px solid #eee;
-}
-#sidebar li:hover { background-color: #f0f0f0; }
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  font-weight: bold;
-}
+  /* ================= SIDEBAR ================= */
+  #sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 260px;
+    height: 100vh;
+    background: white;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 15px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+  }
+  #sidebar.closed { transform: translateX(-100%); }
+  #sidebar h3 { margin-top: 0; }
+  #sidebar ul { list-style: none; padding: 0; }
+  #sidebar li {
+    padding: 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+  }
+  #sidebar li:hover { background-color: #f0f0f0; }
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-weight: bold;
+  }
 
-/* ================= BOUTONS ================= */
-#menuButton {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  z-index: 1100;
-  background: white;
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-.btn-all {
-  background: #007bff;
-  color: white;
-  padding: 8px;
-  text-align: center;
-  margin-bottom: 10px;
-  cursor: pointer;
-  border-radius: 5px;
-}
-.btn-all:hover { background: #0056b3; }
+  /* ================= BOUTONS ================= */
+  #menuButton {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 1100;
+    background: white;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  }
+  .btn-all {
+    background: #007bff;
+    color: white;
+    padding: 8px;
+    text-align: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  .btn-all:hover { background: #0056b3; }
 
-/* ================= MAP ================= */
-#map { height: 100vh; width: 100vw; }
-.leaflet-popup-content img { width: 300px; border-radius: 8px; }
+  /* ================= MAP ================= */
+  #map { height: 100vh; width: 100vw; }
+  .leaflet-popup-content img { width: 300px; border-radius: 8px; }
 
-/* Déplacement zoom */
-.leaflet-top.leaflet-left {
-  left: auto !important;
-  right: 10px;
-}
+  /* Déplacement zoom */
+  .leaflet-top.leaflet-left {
+    left: auto !important;
+    right: 10px;
+  }
 
-/* ================= SERVICE SELECT ================= */
-#serviceSelect {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  z-index: 1500;
-  background: white;
-  padding: 10px;
-  border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-#serviceSelect button { margin-left: 4px; }
+  /* ================= SERVICE SELECT ================= */
+  #serviceSelect {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 1500;
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  #serviceSelect button { margin-left: 4px; }
 </style>
 </head>
 
@@ -102,7 +103,7 @@ body { margin:0; font-family: Arial, sans-serif; }
 
 <!-- Sidebar zones -->
 <div id="menuButton" onclick="toggleSidebar()">☰ Zones</div>
-<div id="sidebar">
+<div id="sidebar" class="closed">
   <span class="close-btn" onclick="toggleSidebar()">✕</span>
   <h3>Zones</h3>
   <div class="btn-all" onclick="afficherTous()">Afficher tous</div>
@@ -113,8 +114,20 @@ body { margin:0; font-family: Arial, sans-serif; }
 
 <script>
 // =============================
-// CONFIG API
+// CONFIG GOOGLE FORM + API
 // =============================
+// ⚠️ Remplacez <FORM_ID> par l'identifiant de votre Google Form (visible dans l'URL publique entre /d/e/ et /viewform)
+const FORM_ID = "<FORM_ID>";
+const FORM_ACTION = `https://docs.google.com/forms/d/e/1FAIpQLSfbclx6nrgmB311-Rmx7z3tJ_8Kq2Ao1eaZETsrPoemIY130A/formResponse`;
+
+// Entrées Google Forms fournies par Jules
+const GF_ENTRY = {
+  id: "entry.1330851147",        // champ texte "id"
+  service: "entry.662387729",    // radio: MONT | ELEC | Autre
+  etat: "entry.1551408270"       // radio: utile | demontable | attente
+};
+
+// API Apps Script existante pour récupérer les états (GET)
 const API_URL = "https://script.google.com/macros/s/AKfycbwN3LcBWt6G8s61k6prNiTQO54P2JhVCB_SzXnTjjbdMegAHMQIcWeAxa86QL0Xwqql/exec";
 
 let currentService = null;
@@ -194,7 +207,7 @@ function coloredIcon(color) {
 
 const icons = {
   utile: coloredIcon("green"),
-  démontable: coloredIcon("red"),
+  demontable: coloredIcon("red"),
   attente: coloredIcon("grey")
 };
 
@@ -207,19 +220,20 @@ points.forEach(function(p){
   var marker = L.marker([p.x, p.y], { icon: icons.attente })
     .bindPopup(`
       <b>${p.titre}</b><br>
-      <img src="${p.image}" alt="${p.titre}"><br><br>
+      <img src="${p.image}" alt="${p.titre}" style="width:300px;border-radius:8px;"><br><br>
       <button onclick="sendVote('${normID}','utile')">Utile</button>
-      <button onclick="sendVote('${normID}','démontable')">Démontable</button>
+      <button onclick="sendVote('${normID}','demontable')">Démontable</button>
       <button onclick="sendVote('${normID}','attente')">En attente</button>
     `);
 
   marker.id = normID;
   marker.zone = p.zone;
-
   markers.push(marker);
   marker.addTo(map);
 
-  if (!zonesCenters[p.zone]) zonesCenters[p.zone] = { sumX:0, sumY:0, count:0 };
+  if (!zonesCenters[p.zone])
+    zonesCenters[p.zone] = { sumX:0, sumY:0, count:0 };
+
   zonesCenters[p.zone].sumX += p.x;
   zonesCenters[p.zone].sumY += p.y;
   zonesCenters[p.zone].count += 1;
@@ -253,6 +267,7 @@ function filtrer(zone){
 
   map.setView([centerX, centerY], map.getZoom());
 }
+
 function afficherTous(){
   markers.forEach(function(m){ map.addLayer(m); });
   map.fitBounds(bounds);
@@ -266,7 +281,7 @@ function toggleSidebar(){
 }
 
 // =============================
-// POST VOTE (FormData)
+// POST VOTE (Google Form)
 // =============================
 function sendVote(id, etat){
   if (!currentService){
@@ -274,21 +289,28 @@ function sendVote(id, etat){
     return;
   }
 
-  const form = new FormData();
-  form.append("id", id);
-  form.append("service", currentService);
-  form.append("etat", etat);
+  const body = new URLSearchParams();
+  body.append(GF_ENTRY.id, id);
+  body.append(GF_ENTRY.service, currentService); // MONT | ELEC | Autre
+  body.append(GF_ENTRY.etat, etat);              // utile | demontable | attente
 
-  fetch(API_URL, {
+  fetch(FORM_ACTION, {
     method: "POST",
-    body: form
+    mode: "no-cors", // CORS opaque, mais l'envoi est bien effectué
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+    body
   })
-  .then(r => r.text())
-  .then(txt => {
-    console.log("POST =>", txt);
-    refreshStates();
+  .then(() => {
+    // Mise à jour optimiste
+    const m = markers.find(m => m.id === id);
+    if (m) {
+      m.closePopup();
+      m.setIcon(icons[etat] || icons.attente);
+    }
+    // Confirmation depuis l'API (source de vérité)
+    setTimeout(refreshStates, 1200);
   })
-  .catch(err => console.error("Erreur POST:", err));
+  .catch(err => console.error("Erreur POST vers Google Forms:", err));
 }
 
 // =============================
@@ -308,9 +330,9 @@ function refreshStates(){
       });
 
       markers.forEach(m => {
-        const etat = normalizedData[m.id] || "attente";
+        const etat = normalizedData[m.id] || "attente"; // utile | demontable | attente
         m.closePopup();
-        m.setIcon(icons[etat]);
+        m.setIcon(icons[etat] || icons.attente);
       });
     })
     .catch(err => console.error("Erreur GET:", err));
@@ -318,7 +340,6 @@ function refreshStates(){
 
 // Premier chargement des états
 refreshStates();
-
 </script>
 </body>
 </html>
