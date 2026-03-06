@@ -170,7 +170,11 @@
   var bounds = [[0,0], [4967,7021]];
   L.imageOverlay('carte.jpeg', bounds).addTo(map);
   map.fitBounds(bounds);
-
+    
+  map.on("click", function(e) {
+    console.log("X:", Math.round(e.latlng.lat), "Y:", Math.round(e.latlng.lng));
+  });
+    
   // =============================
   // DONNÉES
   // =============================
@@ -374,4 +378,5 @@
   </script>
 </body>
 </html>
+
 
