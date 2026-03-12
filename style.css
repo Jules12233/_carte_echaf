@@ -1,0 +1,137 @@
+/* ====== Global ====== */
+body { margin:0; font-family: Arial, sans-serif; }
+
+/* ====== Sidebar ====== */
+#sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  background: white;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 15px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+}
+#sidebar.closed { transform: translateX(-100%); }
+#sidebar h3 { margin-top: 0; }
+#sidebar ul { list-style: none; padding: 0; }
+#sidebar li {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+#sidebar li:hover { background-color: #f0f0f0; }
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* ====== Boutons ====== */
+#menuButton {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 1100;
+  background: white;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.btn-all {
+  background: #007bff;
+  color: white;
+  padding: 8px;
+  text-align: center;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.btn-all:hover { background: #0056b3; }
+
+/* ====== Carte ====== */
+#map { height: 100vh; width: 100vw; }
+.leaflet-popup-content img { width: 300px; border-radius: 8px; }
+
+/* Déplacement du contrôle de zoom à droite */
+.leaflet-top.leaflet-left {
+  left: auto !important;
+  right: 10px;
+}
+
+/* ====== Sélecteur de service ====== */
+#serviceSelect {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 1500;
+  background: white;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+#serviceSelect button { margin-left: 4px; }
+
+/* ====== LÉGENDE ====== */
+#legend {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1500;
+  background: white;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.legend-item img {
+  width: 20px;
+  height: 32px;
+}
+
+/* ====== MODALE ====== */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+}
+
+.hidden { display: none; }
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+  min-width: 280px;
+  max-width: 350px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  text-align: left;
+  font-size: 14px;
+}
+
+.modal-content button {
+  margin-top: 10px;
+  width: 100%;
+}
