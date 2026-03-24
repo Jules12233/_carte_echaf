@@ -18,8 +18,6 @@ const points = [
   { x:2212, y:3185, titre:"Cheminée NO", image:"photo/photo16.jpg", zone: "HQA 1234"  },
   { x:1956, y:3098, titre:"Chemin de câbles HVB", image:"photo/photo17.jpg", zone: "HVB"  },
   { x:1883, y:3416, titre:"Rack liaison BL partie HFD", image:"photo/photo19.jpg", zone: "HFD"  },
-  { x:1936, y:3533, titre:"Ext HFD", image:"photo/photo20.jpg", zone: "HFD"  },
-  { x:1946, y:3584, titre:"Intérieur HFD", image:"photo/photo21.jpg", zone: "HFD"  },
   { x:1336, y:3488, titre:"Effluents huileux", image:"photo/photo22.jpg", zone: "HXA"  },
   { x:1458, y:3842, titre:"Cuves huile", image:"photo/photo23.jpg", zone: "HFA"  },
   { x:1885, y:2860, titre:"Tirage câble ext HLA", image:"photo/photo24.jpg", zone: "HLA"  },
@@ -29,5 +27,5 @@ const points = [
   { x:2195, y:2776, titre:"Fond UP3", image:"photo/photo28.jpg", zone: "HMA 1234"  },
   { x:2325, y:2776, titre:"Fond UP2", image:"photo/photo29.jpg", zone: "HMA 1234"  },
   { x:2447, y:2776, titre:"Fond UP1", image:"photo/photo30.jpg", zone: "HMA 1234"  },
-  { x:1016, y:2606, titre:"Maison des petits chats", image:"photo/photo31.jpg", zone: "Base vie" }
+  { x:1884, y:3094, titre:"EST HVB", image:"photo/photo32.jpg", zone: "HVB"  }
 ];
