@@ -17,7 +17,6 @@ const points = [
   { x:2102, y:3130, titre:"TF4", image:"photo/photo15.jpg", zone: "HQA 1234"  },
   { x:2212, y:3185, titre:"Cheminée NO", image:"photo/photo16.jpg", zone: "HQA 1234"  },
   { x:1956, y:3098, titre:"Chemin de câbles HVB", image:"photo/photo17.jpg", zone: "HVB"  },
-  { x:1883, y:3130, titre:"Ballon Est HVB", image:"photo/photo18.jpg", zone: "HVB"  },
   { x:1883, y:3416, titre:"Rack liaison BL partie HFD", image:"photo/photo19.jpg", zone: "HFD"  },
   { x:1936, y:3533, titre:"Ext HFD", image:"photo/photo20.jpg", zone: "HFD"  },
   { x:1946, y:3584, titre:"Intérieur HFD", image:"photo/photo21.jpg", zone: "HFD"  },
