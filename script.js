@@ -77,6 +77,11 @@ const icons = {
   // (plus tard) demande: coloredIcon("blue")
 };
 
+// X & Y cnsole
+map.on("click", function(e) {
+  console.log("X:", Math.round(e.latlng.lat), "Y:", Math.round(e.latlng.lng));
+});
+
 // =============================
 // DONNÉES & MARQUEURS
 // =============================
