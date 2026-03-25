@@ -61,5 +61,22 @@
   </div>
 </div>
 
+<!-- Modale date limite -->
+<div id="dateModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Jusqu’à quand cet échafaudage sera utile ?</h3>
+
+    <div class="flex-row">
+      <input id="dateDay" type="number" placeholder="JJ" min="1" max="31">
+      <input id="dateMonth" type="number" placeholder="MM" min="1" max="12">
+      <input id="dateYear" type="number" placeholder="AAAA" min="2024" max="2100">
+    </div>
+
+    <button onclick="validerDateLimite()">Valider</button>
+    <button onclick="fermerDateModal()">Annuler</button>
+  </div>
+</div>
+``
+
 </body>
 </html>
