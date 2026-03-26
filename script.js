@@ -77,7 +77,10 @@ function coloredIcon(color) {
 const icons = {
   utile: coloredIcon("green"),
   demontable: coloredIcon("red"),
-  attente: coloredIcon("grey")
+  attente: coloredIcon("grey"),
+  urgent: coloredIcon("yellow"),   // < 14 jours
+  expire: coloredIcon("blue")      // date passée
+
 };
 
 
@@ -277,6 +280,22 @@ function envoyerVote(id, etat, isoDate){
 // =============================
 // RÉCUPERATION API
 // =============================
+function computeDateStatus(dateLimite) {
+  if (!dateLimite) return "utile"; // pas de date → utile normal
+
+  // dateLimite = "14/03/2026"
+  const [d, m, y] = dateLimite.split("/");
+  const target = new Date(`${y}-${m}-${d}`);
+  const now = new Date();
+
+  const diffMs = target - now;
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+  if (diffDays < 0) return "expire";      // date passée
+  if (diffDays <= 14) return "urgent";    // moins de 2 semaines
+  return "utile";                          // normal
+}
+
 function refreshStates(){
   fetch(API_URL + "?v=" + Date.now(), { cache:"no-store" })
     .then(r => r.json())
@@ -294,18 +313,27 @@ function refreshStates(){
         m.state = info.etat || "attente";
         m.serviceUtile = info.service || null;
 
+        // reconstituer date limite
+
         if (info.year && info.month && info.day) {
           m.dateLimite = `${info.day}/${info.month}/${info.year}`;
-        } else {
-          m.dateLimite = null;
         }
 
-        m.setIcon(icons[m.state] || icons.attente);
+
+        // appliquer couleur finale
+        if (m.state === "utile") {
+          const status = computeDateStatus(m.dateLimite); // utile / urgent / expire
+          m.setIcon(icons[status]);
+        }
+        else {
+          // demontable / attente (inchangé)
+          m.setIcon(icons[m.state] || icons.attente);
+        }
+
       });
     })
     .catch(err => console.error("Erreur GET:", err));
 }
-
 refreshStates();
 
 
