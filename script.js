@@ -1,5 +1,5 @@
 // =============================
-// CONFIG GOOGLE FORM + API
+// CONFIG OTP
 // =============================
 
 const SEND_OTP_URL =
@@ -9,6 +9,7 @@ const VERIFY_OTP_URL =
   "https://script.google.com/macros/s/AKfycbzAzJ-J3eryTHwyetoMif6lydo7OUd3G0FQuKjCcmt_QMQgnacnAFglOewQj5QjScOhdQ/exec?action=verify";
 
 let authenticatedEmail = localStorage.getItem("authEmail") || null;
+
 
 // =============================
 // CONFIG GOOGLE FORM + API
@@ -20,8 +21,8 @@ const GF_ENTRY = {
   id: "entry.1330851147",
   service: "entry.662387729",
   etat: "entry.1551408270",
-  nom: "entry.1649010906",
-  date_iso: "entry.2001127738"   // ✅ Champ unique "date" du Google Form
+  email: "entry.2001127738",
+  date_iso: "entry.1826740746"
 };
 
 const API_URL = "https://script.google.com/macros/s/AKfycbzwzovtRNEPYVuhoPlkS5dMPXJI1Ai5TZgH3tXS80y9mrxA7YRtNVYw1iNtB5IimpD1aQ/exec";
@@ -42,34 +43,29 @@ function setService(s) {
       return;
     }
     currentService = "Autre - " + autre.trim();
-  } 
-  else {
-    currentService = s;  // MONT ou ELEC
+  } else {
+    currentService = s;
   }
-
   alert("Service : " + currentService);
 }
 
-// FCT AUTHENTIFICATION
+
+// =============================
+// AUTHENTIFICATION OTP
+// =============================
+
 async function authenticateUser() {
+  if (authenticatedEmail) return authenticatedEmail;
 
-  // Si déjà authentifié → OK
-  if (authenticatedEmail) {
-    return authenticatedEmail;
-  }
-
-  // 1) Demander l'email
   const email = prompt("Entrez votre adresse VINCI (prenom.nom@vinci-construction.com)");
   if (!email) return null;
 
   const regexVINCI = /^[a-zA-Z]+(?:[.-][a-zA-Z]+)*@vinci-construction\.com$/;
-
   if (!regexVINCI.test(email.trim())) {
     alert("Adresse mail invalide !");
     return null;
   }
 
-  // 2) Demander au backend d'envoyer un OTP
   const sendReq = await fetch(SEND_OTP_URL + "&email=" + encodeURIComponent(email));
   const sendRes = await sendReq.json();
 
@@ -78,7 +74,6 @@ async function authenticateUser() {
     return null;
   }
 
-  // 3) L'utilisateur entre le code
   const otp = prompt("Un code à usage unique vous a été envoyé.\nVeuillez le saisir :");
   if (!otp) return null;
 
@@ -87,7 +82,6 @@ async function authenticateUser() {
     "&email=" + encodeURIComponent(email) +
     "&otp=" + encodeURIComponent(otp)
   );
-
   const verifyRes = await verifyReq.json();
 
   if (!verifyRes.valid) {
@@ -95,17 +89,17 @@ async function authenticateUser() {
     return null;
   }
 
-  // ✅ Authentification réussie !
   authenticatedEmail = email.trim();
   localStorage.setItem("authEmail", authenticatedEmail);
-
   alert("Identification réussie !");
   return authenticatedEmail;
 }
 
+
 // =============================
 // NORMALISATION
 // =============================
+
 function normalize(str) {
   return String(str)
     .normalize("NFD")
@@ -129,6 +123,7 @@ map.fitBounds(bounds);
 // =============================
 // ICONES
 // =============================
+
 function coloredIcon(color) {
   return new L.Icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
@@ -141,25 +136,27 @@ function coloredIcon(color) {
 }
 
 const icons = {
-  utile: coloredIcon("green"),
+  utile:      coloredIcon("green"),
   demontable: coloredIcon("red"),
-  attente: coloredIcon("grey"),
-  urgent: coloredIcon("yellow"),   // < 14 jours
-  expire: coloredIcon("blue")      // date passée
-
+  attente:    coloredIcon("grey"),
+  urgent:     coloredIcon("yellow"),
+  expire:     coloredIcon("blue")
 };
 
 
 // =============================
 // POPUP DYNAMIQUE
 // =============================
-function popupContent(marker) {
 
+function popupContent(marker) {
   let infoHTML = "";
 
   if (marker.state === "utile" && marker.serviceUtile && marker.dateLimite) {
     infoHTML = `
-      <br><b>Échafaudage utile pour ${marker.serviceUtile} jusqu’au ${marker.dateLimite}</b><br><br>
+      <br>
+      <b>Utile pour ${marker.serviceUtile} jusqu'au ${marker.dateLimite}</b><br>
+      <span style="font-size:12px;color:#555;">Déclaré par : ${marker.emailUtile || "inconnu"}</span>
+      <br><br>
     `;
   }
 
@@ -177,32 +174,33 @@ function popupContent(marker) {
 // =============================
 // CREATION MARQUEURS
 // =============================
+
 var markers = [];
 var zonesCenters = {};
 
-points.forEach(function(p){
+points.forEach(function(p) {
   const normID = normalize(p.titre);
 
   var marker = L.marker([p.x, p.y], { icon: icons.attente })
     .bindPopup(() => popupContent(marker));
 
-  marker.id = normID;
-  marker.zone = p.zone;
-  marker.titre = p.titre;
-  marker.image = `<img src="${p.image}" style="width:300px;border-radius:8px;">`;
-
-  marker.state = "attente";
+  marker.id          = normID;
+  marker.zone        = p.zone;
+  marker.titre       = p.titre;
+  marker.image       = `<img src="${p.image}" style="width:300px;border-radius:8px;">`;
+  marker.state       = "attente";
   marker.serviceUtile = null;
-  marker.dateLimite = null;
+  marker.emailUtile  = null;   // ← ajout
+  marker.dateLimite  = null;
 
   markers.push(marker);
   marker.addTo(map);
 
   if (!zonesCenters[p.zone])
-    zonesCenters[p.zone] = { sumX:0, sumY:0, count:0 };
+    zonesCenters[p.zone] = { sumX: 0, sumY: 0, count: 0 };
 
-  zonesCenters[p.zone].sumX += p.x;
-  zonesCenters[p.zone].sumY += p.y;
+  zonesCenters[p.zone].sumX  += p.x;
+  zonesCenters[p.zone].sumY  += p.y;
   zonesCenters[p.zone].count += 1;
 });
 
@@ -210,27 +208,27 @@ points.forEach(function(p){
 // =============================
 // ZONES
 // =============================
+
 var zones = [...new Set(points.map(p => p.zone))];
 var zoneList = document.getElementById("zoneList");
 
-zones.forEach(function(zone){
+zones.forEach(function(zone) {
   var li = document.createElement("li");
   li.textContent = zone;
-  li.onclick = function(){ filtrer(zone); };
+  li.onclick = function() { filtrer(zone); };
   zoneList.appendChild(li);
 });
 
-function filtrer(zone){
-  markers.forEach(function(m){
+function filtrer(zone) {
+  markers.forEach(function(m) {
     if (m.zone === zone) map.addLayer(m);
     else map.removeLayer(m);
   });
-
   var z = zonesCenters[zone];
   map.setView([z.sumX / z.count, z.sumY / z.count], map.getZoom());
 }
 
-function afficherTous(){
+function afficherTous() {
   markers.forEach(m => map.addLayer(m));
   map.fitBounds(bounds);
 }
@@ -239,7 +237,8 @@ function afficherTous(){
 // =============================
 // SIDEBAR
 // =============================
-function toggleSidebar(){
+
+function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("closed");
 }
 
@@ -247,17 +246,18 @@ function toggleSidebar(){
 // =============================
 // MODALE DATE
 // =============================
-let votePendingID = null;
+
+let votePendingID   = null;
 let votePendingEtat = null;
 
-function ouvrirDateModal(){
+function ouvrirDateModal() {
   document.getElementById("dateModal").classList.remove("hidden");
 }
-function fermerDateModal(){
+function fermerDateModal() {
   document.getElementById("dateModal").classList.add("hidden");
 }
 
-function validerDateLimite(){
+function validerDateLimite() {
   const d = document.getElementById("dateDay").value;
   const m = document.getElementById("dateMonth").value;
   const y = document.getElementById("dateYear").value;
@@ -267,9 +267,7 @@ function validerDateLimite(){
     return;
   }
 
-  // ✅ Format ISO
   const iso = `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-
   fermerDateModal();
   envoyerVote(votePendingID, votePendingEtat, iso);
 }
@@ -279,57 +277,52 @@ function validerDateLimite(){
 // ENVOI DU VOTE
 // =============================
 
-async function sendVote(id, etat){
-
-  // 1) Authentification obligatoire AVANT le vote
+async function sendVote(id, etat) {
   const email = await authenticateUser();
   if (!email) return;
 
-  currentUser = email;  // email authentifié OK
+  currentUser = email;
 
-  // 2) Vérifier que le service a été choisi depuis la barre du haut
   if (!currentService || !currentService.trim()) {
-    alert("Veuillez d’abord choisir votre service en haut à droite.");
+    alert("Veuillez d'abord choisir votre service en haut à droite.");
     return;
   }
   currentService = currentService.trim();
 
-  // 3) Si vote utile → demander la date
   if (etat === "utile") {
-    votePendingID = id;
+    votePendingID   = id;
     votePendingEtat = etat;
     ouvrirDateModal();
     return;
   }
 
-  // 4) Sinon envoyer directement
   envoyerVote(id, etat, null);
 }
 
 
 // =============================
-// ENVOI GOOGLE FORMS (ISO)
+// ENVOI GOOGLE FORMS
 // =============================
-function envoyerVote(id, etat, isoDate){
 
+function envoyerVote(id, etat, isoDate) {
   const body = new URLSearchParams();
-  body.append(GF_ENTRY.id, id);
+  body.append(GF_ENTRY.id,      id);
   body.append(GF_ENTRY.service, currentService);
-  body.append(GF_ENTRY.etat, etat);
-  body.append(GF_ENTRY.email, currentUser);
+  body.append(GF_ENTRY.etat,    etat);
+  body.append(GF_ENTRY.email,   currentUser);
 
   let marker = markers.find(m => m.id === id);
 
-  if (etat === "utile" && isoDate){
+  if (etat === "utile" && isoDate) {
     marker.serviceUtile = currentService;
-
-    const [y,m,d] = isoDate.split("-");
-    marker.dateLimite = `${d}/${m}/${y}`;
-
+    marker.emailUtile   = currentUser;
+    const [y, mo, d]    = isoDate.split("-");
+    marker.dateLimite   = `${d}/${mo}/${y}`;
     body.append(GF_ENTRY.date_iso, isoDate);
   } else {
     marker.serviceUtile = null;
-    marker.dateLimite = null;
+    marker.emailUtile   = null;
+    marker.dateLimite   = null;
   }
 
   fetch(FORM_ACTION, {
@@ -341,33 +334,19 @@ function envoyerVote(id, etat, isoDate){
   .then(() => {
     marker.state = etat;
     marker.setIcon(icons[etat] || icons.attente);
-    refreshStates();
+    // Rafraîchir depuis la Synthese après un court délai
+    setTimeout(refreshStates, 3000);
   })
   .catch(err => console.error("Erreur POST:", err));
 }
 
 
 // =============================
-// RÉCUPERATION API
+// RÉCUPÉRATION API (Synthese)
 // =============================
-function computeDateStatus(dateLimite) {
-  if (!dateLimite) return "utile"; // pas de date → utile normal
 
-  // dateLimite = "14/03/2026"
-  const [d, m, y] = dateLimite.split("/");
-  const target = new Date(`${y}-${m}-${d}`);
-  const now = new Date();
-
-  const diffMs = target - now;
-  const diffDays = diffMs / (1000 * 60 * 60 * 24);
-
-  if (diffDays < 0) return "expire";      // date passée
-  if (diffDays <= 14) return "urgent";    // moins de 2 semaines
-  return "utile";                          // normal
-}
-
-function refreshStates(){
-  fetch(API_URL + "?v=" + Date.now(), { cache:"no-store" })
+function refreshStates() {
+  fetch(API_URL + "?v=" + Date.now(), { cache: "no-store" })
     .then(r => r.json())
     .then(data => {
 
@@ -380,36 +359,45 @@ function refreshStates(){
           return;
         }
 
-        m.state = info.etat || "attente";
+        m.state        = info.etat    || "attente";
         m.serviceUtile = info.service || null;
+        m.emailUtile   = info.email   || null;
 
-        // reconstituer date limite
-
-        if (info.year && info.month && info.day) {
-          m.dateLimite = `${info.day}/${info.month}/${info.year}`;
+        if (info.date_iso) {
+          const [y, mo, d] = info.date_iso.split("-");
+          m.dateLimite = `${d}/${mo}/${y}`;
+        } else {
+          m.dateLimite = null;
         }
 
-
-        // appliquer couleur finale
         if (m.state === "utile") {
-          const status = computeDateStatus(m.dateLimite); // utile / urgent / expire
-          m.setIcon(icons[status]);
-        }
-        else {
-          // demontable / attente (inchangé)
+          const isExpire = String(info.expire).toUpperCase() === "TRUE";
+          const isUrgent = String(info.urgent).toUpperCase() === "TRUE";
+
+          if (isExpire) {
+            m.setIcon(icons.expire);
+          } else if (isUrgent) {
+            m.setIcon(icons.urgent);
+          } else {
+            m.setIcon(icons.utile);
+          }
+        } else {
           m.setIcon(icons[m.state] || icons.attente);
         }
 
-      });
+      });  // ← fermeture markers.forEach manquante
+
     })
     .catch(err => console.error("Erreur GET:", err));
 }
+
 refreshStates();
 
 
 // =============================
 // AIDE
 // =============================
+
 function ouvrirLegendePopup() {
   document.getElementById("helpModal").classList.remove("hidden");
 }
