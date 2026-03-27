@@ -2,6 +2,18 @@
 // CONFIG GOOGLE FORM + API
 // =============================
 
+const SEND_OTP_URL =
+  "https://script.google.com/macros/s/AKfycbzAzJ-J3eryTHwyetoMif6lydo7OUd3G0FQuKjCcmt_QMQgnacnAFglOewQj5QjScOhdQ/exec?action=send";
+
+const VERIFY_OTP_URL =
+  "https://script.google.com/macros/s/AKfycbzAzJ-J3eryTHwyetoMif6lydo7OUd3G0FQuKjCcmt_QMQgnacnAFglOewQj5QjScOhdQ/exec?action=verify";
+
+let authenticatedEmail = localStorage.getItem("authEmail") || null;
+
+// =============================
+// CONFIG GOOGLE FORM + API
+// =============================
+
 const FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSfbclx6nrgmB311-Rmx7z3tJ_8Kq2Ao1eaZETsrPoemIY130A/formResponse";
 
 const GF_ENTRY = {
@@ -9,7 +21,7 @@ const GF_ENTRY = {
   service: "entry.662387729",
   etat: "entry.1551408270",
   nom: "entry.1649010906",
-  date_iso: "entry.1826740746"   // ✅ Champ unique "date" du Google Form
+  date_iso: "entry.2001127738"   // ✅ Champ unique "date" du Google Form
 };
 
 const API_URL = "https://script.google.com/macros/s/AKfycbzwzovtRNEPYVuhoPlkS5dMPXJI1Ai5TZgH3tXS80y9mrxA7YRtNVYw1iNtB5IimpD1aQ/exec";
@@ -23,19 +35,73 @@ let currentService = null;
 let currentUser = null;
 
 function setService(s) {
-  currentService = s;
-
-  const nom = prompt("Entrez votre nom :");
-  if (!nom || nom.trim() === "") {
-    alert("Nom obligatoire !");
-    currentService = null;
-    return;
+  if (s === "Autre") {
+    let autre = prompt("Veuillez indiquer votre service :");
+    if (!autre || autre.trim() === "") {
+      alert("Service obligatoire !");
+      return;
+    }
+    currentService = "Autre - " + autre.trim();
+  } 
+  else {
+    currentService = s;  // MONT ou ELEC
   }
 
-  currentUser = nom.trim();
-  alert("Bienvenue " + currentUser + " (" + currentService + ")");
+  alert("Service : " + currentService);
 }
 
+// FCT AUTHENTIFICATION
+async function authenticateUser() {
+
+  // Si déjà authentifié → OK
+  if (authenticatedEmail) {
+    return authenticatedEmail;
+  }
+
+  // 1) Demander l'email
+  const email = prompt("Entrez votre adresse VINCI (prenom.nom@vinci-construction.com)");
+  if (!email) return null;
+
+  const regexVINCI = /^[a-zA-Z]+(?:[.-][a-zA-Z]+)*@vinci-construction\.com$/;
+
+  if (!regexVINCI.test(email.trim())) {
+    alert("Adresse mail invalide !");
+    return null;
+  }
+
+  // 2) Demander au backend d'envoyer un OTP
+  const sendReq = await fetch(SEND_OTP_URL + "&email=" + encodeURIComponent(email));
+  const sendRes = await sendReq.json();
+
+  if (!sendRes.success) {
+    alert("Erreur lors de l'envoi du code.");
+    return null;
+  }
+
+  // 3) L'utilisateur entre le code
+  const otp = prompt("Un code à usage unique vous a été envoyé.\nVeuillez le saisir :");
+  if (!otp) return null;
+
+  const verifyReq = await fetch(
+    VERIFY_OTP_URL +
+    "&email=" + encodeURIComponent(email) +
+    "&otp=" + encodeURIComponent(otp)
+  );
+
+  const verifyRes = await verifyReq.json();
+
+  if (!verifyRes.valid) {
+    alert("Code incorrect ou expiré.");
+    return null;
+  }
+
+  // ✅ Authentification réussie !
+  authenticatedEmail = email.trim();
+  localStorage.setItem("authEmail", authenticatedEmail);
+
+  alert("Identification réussie !");
+  return authenticatedEmail;
+}
 
 // =============================
 // NORMALISATION
@@ -212,20 +278,23 @@ function validerDateLimite(){
 // =============================
 // ENVOI DU VOTE
 // =============================
-function sendVote(id, etat){
-  if (!currentService){
-    alert("Choisissez d'abord votre service.");
+
+async function sendVote(id, etat){
+
+  // 1) Authentification obligatoire AVANT le vote
+  const email = await authenticateUser();
+  if (!email) return;
+
+  currentUser = email;  // email authentifié OK
+
+  // 2) Vérifier que le service a été choisi depuis la barre du haut
+  if (!currentService || !currentService.trim()) {
+    alert("Veuillez d’abord choisir votre service en haut à droite.");
     return;
   }
-  if (!currentUser){
-    const nom = prompt("Entrez votre nom :");
-    if (!nom || nom.trim() === "") {
-      alert("Nom obligatoire !");
-      return;
-    }
-    currentUser = nom.trim();
-  }
+  currentService = currentService.trim();
 
+  // 3) Si vote utile → demander la date
   if (etat === "utile") {
     votePendingID = id;
     votePendingEtat = etat;
@@ -233,6 +302,7 @@ function sendVote(id, etat){
     return;
   }
 
+  // 4) Sinon envoyer directement
   envoyerVote(id, etat, null);
 }
 
@@ -246,7 +316,7 @@ function envoyerVote(id, etat, isoDate){
   body.append(GF_ENTRY.id, id);
   body.append(GF_ENTRY.service, currentService);
   body.append(GF_ENTRY.etat, etat);
-  body.append(GF_ENTRY.nom, currentUser);
+  body.append(GF_ENTRY.email, currentUser);
 
   let marker = markers.find(m => m.id === id);
 
