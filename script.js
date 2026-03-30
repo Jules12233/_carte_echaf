@@ -32,21 +32,45 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzwzovtRNEPYVuhoPlkS5dM
 // UTILISATEUR
 // =============================
 
-let currentService = null;
 let currentUser = null;
 
-function setService(s) {
+function ouvrirServiceModal() {
+  document.getElementById("autreServiceBlock").style.display = "none";
+  document.getElementById("autreServiceInput").value = "";
+  document.getElementById("serviceModal").classList.remove("hidden");
+}
+
+function fermerServiceModal() {
+  document.getElementById("serviceModal").classList.add("hidden");
+}
+
+function choisirService(s) {
   if (s === "Autre") {
-    let autre = prompt("Veuillez indiquer votre service :");
-    if (!autre || autre.trim() === "") {
-      alert("Service obligatoire !");
-      return;
-    }
-    currentService = "Autre - " + autre.trim();
-  } else {
-    currentService = s;
+    document.getElementById("autreServiceBlock").style.display = "block";
+    return;
   }
-  alert("Service : " + currentService);
+  currentService = s;
+  fermerServiceModal();
+  _apresService();
+}
+
+function validerAutreService() {
+  const val = document.getElementById("autreServiceInput").value.trim();
+  if (!val) {
+    alert("Veuillez indiquer votre service.");
+    return;
+  }
+  currentService = val;
+  fermerServiceModal();
+  _apresService();
+}
+
+function _apresService() {
+  if (votePendingEtat === "utile") {
+    ouvrirDateModal();
+  } else {
+    envoyerVote(votePendingID, votePendingEtat, null);
+  }
 }
 
 
@@ -166,8 +190,8 @@ function popupContent(marker) {
     ${infoHTML}
     <button onclick="sendVote('${marker.id}','utile')">Utile</button>
     <button onclick="sendVote('${marker.id}','demontable')">Démontable</button>
-    <button onclick="sendVote('${marker.id}','attente')">En attente</button>
-  `;
+    `;
+
 }
 
 
@@ -283,20 +307,17 @@ async function sendVote(id, etat) {
 
   currentUser = email;
 
-  if (!currentService || !currentService.trim()) {
-    alert("Veuillez d'abord choisir votre service en haut à droite.");
-    return;
-  }
-  currentService = currentService.trim();
-
   if (etat === "utile") {
     votePendingID   = id;
     votePendingEtat = etat;
-    ouvrirDateModal();
+    ouvrirServiceModal();  // ← service d'abord, puis date
     return;
   }
 
-  envoyerVote(id, etat, null);
+  // Pour démontable/attente : service aussi requis
+  votePendingID   = id;
+  votePendingEtat = etat;
+  ouvrirServiceModal();
 }
 
 
