@@ -14,13 +14,6 @@
 </head>
 
 <body>
-  <!-- Sélecteur de service -->
-  <div id="serviceSelect">
-    Vous êtes :
-    <button onclick="setService('MONT')">MONT</button>
-    <button onclick="setService('ELEC')">ELEC</button>
-    <button onclick="setService('Autre')">Autre</button>
-  </div>
 
   <!-- Bouton menu / Sidebar -->
   <div id="menuButton" onclick="toggleSidebar()">☰ Zones</div>
@@ -58,10 +51,26 @@
     <p><b>🟩 Utile :</b> Au moins un service a voté "utile".</p>
     <p><b>🟥 Démontable :</b> Au moins un vote "démontable" et aucun vote utile.</p>
     <p><b>⚪ En attente :</b> Personne ne s’est prononcé ou uniquement des votes "en attente".</p>
-    <p><b>🟨 Bientôt démonté :</b> Date limite dans moins de 14 jours.</p>
+    <p><b>🟨 Bientôt expiré :</b> Date limite d'utilité annoncée dans moins de 14 jours.</p>
     <p><b>🟦 Expiré :</b> Date limite dépassée
 
     <button onclick="fermerLegendePopup()">Fermer</button>
+  </div>
+</div>
+
+<!-- Modale service -->
+<div id="serviceModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Quel est votre service ?</h3>
+    <div style="display:flex; gap:10px; justify-content:center; margin:15px 0;">
+      <button onclick="choisirService('MONT')">Monteiro</button>
+      <button onclick="choisirService('ELEC')">Élec</button>
+      <button onclick="choisirService('Autre')">Autre</button>
+    </div>
+    <div id="autreServiceBlock" style="display:none; margin-top:10px;">
+      <input id="autreServiceInput" type="text" placeholder="Nom de votre service" style="width:100%; padding:6px; box-sizing:border-box;">
+      <button style="margin-top:8px;" onclick="validerAutreService()">Valider</button>
+    </div>
   </div>
 </div>
 
