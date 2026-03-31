@@ -191,6 +191,7 @@ function popupContent(marker) {
     <button onclick="sendVote('${marker.id}','utile')">Utile</button>
     <button onclick="sendVote('${marker.id}','demontable')">Démontable</button>
     `;
+    //<button onclick="sendVote('${marker.id}','attente')">En attente</button>
 
 }
 
