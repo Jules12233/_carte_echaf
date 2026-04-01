@@ -33,10 +33,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbzwzovtRNEPYVuhoPlkS5dM
 // =============================
 
 let currentUser = null;
+//let authenticatedEmail = localStorage.getItem("authEmail") || null;
+let currentService = null;
 
 function ouvrirServiceModal() {
   document.getElementById("autreServiceBlock").style.display = "none";
-  document.getElementById("autreServiceInput").value = "";
+  document.getElementById("autreServiceInput").value = ""; 
   document.getElementById("serviceModal").classList.remove("hidden");
 }
 
@@ -297,30 +299,43 @@ function validerDateLimite() {
   envoyerVote(votePendingID, votePendingEtat, iso);
 }
 
+function preselectDate(joursAjoutes) {
+  const date = new Date();
+  date.setDate(date.getDate() + joursAjoutes);
+
+  document.getElementById("dateDay").value   = date.getDate();
+  document.getElementById("dateMonth").value = date.getMonth() + 1;
+  document.getElementById("dateYear").value  = date.getFullYear();
+}
 
 // =============================
 // ENVOI DU VOTE
 // =============================
 
 async function sendVote(id, etat) {
+
+  // 1) Authentification
   const email = await authenticateUser();
   if (!email) return;
-
   currentUser = email;
 
-  if (etat === "utile") {
-    votePendingID   = id;
-    votePendingEtat = etat;
-    ouvrirServiceModal();  // ← service d'abord, puis date
+  // 2) Mémoriser le vote en attente
+  votePendingID   = id;
+  votePendingEtat = etat;
+
+  // 3) Service déjà choisi ?
+  if (!currentService) {
+    ouvrirServiceModal();
     return;
   }
 
-  // Pour démontable/attente : service aussi requis
-  votePendingID   = id;
-  votePendingEtat = etat;
-  ouvrirServiceModal();
+  // 4) Service connu → voter directement
+  if (etat === "utile") {
+    ouvrirDateModal();
+  } else {
+    envoyerVote(id, etat, null);
+  }
 }
-
 
 // =============================
 // ENVOI GOOGLE FORMS
