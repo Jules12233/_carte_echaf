@@ -48,11 +48,11 @@
 <div id="helpModal" class="modal hidden">
   <div class="modal-content">
     <h3>Logique des couleurs</h3>
-    <p><b>🟩 Utile :</b> Au moins un service a voté "utile".</p>
+    <p><b>🟩 Utile :</b> Utile plus de deux semaines pour au moins un service.</p>
     <p><b>🟥 Démontable :</b> Au moins un vote "démontable" et aucun vote utile.</p>
-    <p><b>⚪ En attente :</b> Personne ne s’est prononcé ou uniquement des votes "en attente".</p>
+    <p><b>⚪ En attente :</b> Personne ne s’est encore prononcé.</p>
     <p><b>🟨 Bientôt expiré :</b> Date limite d'utilité annoncée dans moins de 14 jours.</p>
-    <p><b>🟦 Expiré :</b> Date limite dépassée
+    <p><b>🟦 Expiré :</b> Date limite d'utilité annoncée dépassée
 
     <button onclick="fermerLegendePopup()">Fermer</button>
   </div>
@@ -77,7 +77,13 @@
 <!-- Modale date limite -->
 <div id="dateModal" class="modal hidden">
   <div class="modal-content">
-    <h3>Jusqu’à quand cet échafaudage sera utile ?</h3>
+    <h3>Jusqu'à quand cet échafaudage sera utile ?</h3>
+
+    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:12px;">
+      <button onclick="preselectDate(7)">1 semaine</button>
+      <button onclick="preselectDate(14)">2 semaines</button>
+      <button onclick="preselectDate(21)">3 semaines</button>
+    </div>
 
     <div class="flex-row">
       <input id="dateDay" type="number" placeholder="JJ" min="1" max="31">
