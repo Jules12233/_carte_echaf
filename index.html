@@ -35,6 +35,14 @@
   <!-- Carte -->
   <div id="map"></div>
 
+  <!-- Indicateur de chargement -->
+<div id="loadingOverlay" class="loading hidden">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div>Chargement des échafaudages…</div>
+  </div>
+</div>
+``
 
   <!-- Logique de la carte -->
   <script src="script.js"></script>
@@ -50,7 +58,7 @@
   <button id="helpButton" onclick="ouvrirLegendePopup()">Logique marqueur</button>
 </div>
 
-<!-- Modale d'aide -->
+<!-- Modale couleur -->
 <div id="helpModal" class="modal hidden">
   <div class="modal-content">
     <h3>Logique des couleurs</h3>
@@ -58,11 +66,39 @@
     <p><b>🟥 Démontable :</b> Au moins un vote "démontable" et aucun vote utile.</p>
     <p><b>⚪ En attente :</b> Personne ne s’est encore prononcé.</p>
     <p><b>🟨 Bientôt expiré :</b> Date limite d'utilité annoncée dans moins de 14 jours.</p>
-    <p><b>🟦 Expiré :</b> Date limite d'utilité annoncée dépassée
+    <p><b>🟦 Expiré :</b> Date limite d'utilité annoncée dépassée.</p>
+    <p>⚠️ Il faut parfois patienter quelques secondes pour voir les changements de couleur après avoir voté.</p>
 
     <button onclick="fermerLegendePopup()">Fermer</button>
   </div>
 </div>
+
+<!-- Modale aide / objectif outil -->
+<div id="helpToolModal" class="modal hidden">
+  <div class="modal-content">
+
+    <h2 style="text-align: center;">Carte interactive des échafaudages</h2>
+
+    <p style="text-align: justify;">
+      Cet outil a pour objectif d'accompagner la gestion des échafaudages. Il permet de visualiser l'implantation des installations aujourd'hui mais aussi à n'importe quelle date à compter du 1er avril 2026. 
+    </p>
+
+    <p style="text-align: justify;">
+      Les utilisateurs doivent s'identifier avec leur adresse vinci afin de pouvoir indiquer l'utilité d'un échafaudage pour leur service.
+    </p>
+
+    <p style="text-align: justify;">
+      Pour toute question, réclamation ou suggestion d'amélioration, n'hésitez pas à contacter Jules Heraud.
+    </p>
+
+    <p style="text-align: center;">
+      :)
+    </p>
+
+    <button onclick="fermerHelpToolModal()">Fermer</button>
+  </div>
+</div>
+``
 
 <!-- Modale service -->
 <div id="serviceModal" class="modal hidden">
