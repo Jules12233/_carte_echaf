@@ -1,107 +1,614 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Carte interactive</title>
+// =============================
+// CONFIG OTP
+// =============================
 
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+const SEND_OTP_URL =
+  "https://script.google.com/macros/s/AKfycbzAzJ-J3eryTHwyetoMif6lydo7OUd3G0FQuKjCcmt_QMQgnacnAFglOewQj5QjScOhdQ/exec?action=send";
 
-  <!-- Styles de la page -->
-  <link rel="stylesheet" href="style.css" />
-</head>
+const VERIFY_OTP_URL =
+  "https://script.google.com/macros/s/AKfycbzAzJ-J3eryTHwyetoMif6lydo7OUd3G0FQuKjCcmt_QMQgnacnAFglOewQj5QjScOhdQ/exec?action=verify";
 
-<body>
-
-  <!-- Bouton menu -->
-  <div id="menuButton" onclick="toggleSidebar()">☰ Zones</div>
-
-  <!-- Sélecteur de date historique -->
-  <div id="dateSelector">
-    <span id="dateIndicator">Aujourd'hui</span>
-    <input type="date" id="datePicker" onchange="onDateChange()">
-    <button onclick="resetToToday()">Aujourd'hui</button>
-  </div>
-
-  <div id="sidebar" class="closed">
-    <span class="close-btn" onclick="toggleSidebar()">✕</span>
-    <h3>Zones</h3>
-    <div class="btn-all" onclick="afficherTous()">Afficher tous</div>
-    <ul id="zoneList"></ul>
-  </div>
-
-  <!-- Carte -->
-  <div id="map"></div>
+let authenticatedEmail = localStorage.getItem("authEmail") || null;
 
 
-  <!-- Logique de la carte -->
-  <script src="script.js"></script>
+// =============================
+// CONFIG GOOGLE FORM + API
+// =============================
 
-<!-- Légende -->
-<div id="legend">
-  <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png"> Utile</div>
-  <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png"> Démontable</div>
-  <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png"> En attente</div>
-  <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png"> Bientôt expiré</div>
-  <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png"> Expiré</div>
+const FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSfbclx6nrgmB311-Rmx7z3tJ_8Kq2Ao1eaZETsrPoemIY130A/formResponse";
 
-  <button id="helpButton" onclick="ouvrirLegendePopup()">Logique marqueur</button>
-</div>
+const GF_ENTRY = {
+  id: "entry.1330851147",
+  service: "entry.662387729",
+  etat: "entry.1551408270",
+  email: "entry.2001127738",
+  date_iso: "entry.1826740746"
+};
 
-<!-- Modale d'aide -->
-<div id="helpModal" class="modal hidden">
-  <div class="modal-content">
-    <h3>Logique des couleurs</h3>
-    <p><b>🟩 Utile :</b> Utile plus de deux semaines pour au moins un service.</p>
-    <p><b>🟥 Démontable :</b> Au moins un vote "démontable" et aucun vote utile.</p>
-    <p><b>⚪ En attente :</b> Personne ne s’est encore prononcé.</p>
-    <p><b>🟨 Bientôt expiré :</b> Date limite d'utilité annoncée dans moins de 14 jours.</p>
-    <p><b>🟦 Expiré :</b> Date limite d'utilité annoncée dépassée
+const API_URL = "https://script.google.com/macros/s/AKfycbzwzovtRNEPYVuhoPlkS5dMPXJI1Ai5TZgH3tXS80y9mrxA7YRtNVYw1iNtB5IimpD1aQ/exec";
 
-    <button onclick="fermerLegendePopup()">Fermer</button>
-  </div>
-</div>
 
-<!-- Modale service -->
-<div id="serviceModal" class="modal hidden">
-  <div class="modal-content">
-    <h3>Quel est votre service ?</h3>
-    <div style="display:flex; gap:10px; justify-content:center; margin:15px 0;">
-      <button onclick="choisirService('MONT')">Monteiro</button>
-      <button onclick="choisirService('ELEC')">Élec</button>
-      <button onclick="choisirService('Autre')">Autre</button>
-    </div>
-    <div id="autreServiceBlock" style="display:none; margin-top:10px;">
-      <input id="autreServiceInput" type="text" placeholder="Nom de votre service" style="width:100%; padding:6px; box-sizing:border-box;">
-      <button style="margin-top:8px;" onclick="validerAutreService()">Valider</button>
-    </div>
-  </div>
-</div>
+// =============================
+// UTILISATEUR
+// =============================
 
-<!-- Modale date limite -->
-<div id="dateModal" class="modal hidden">
-  <div class="modal-content">
-    <h3>Jusqu'à quand cet échafaudage sera utile ?</h3>
+let currentUser = null;
+//let authenticatedEmail = localStorage.getItem("authEmail") || null;
+let currentService = null;
 
-    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:12px;">
-      <button onclick="preselectDate(7)">1 semaine</button>
-      <button onclick="preselectDate(14)">2 semaines</button>
-      <button onclick="preselectDate(21)">3 semaines</button>
-    </div>
+function ouvrirServiceModal() {
+  document.getElementById("autreServiceBlock").style.display = "none";
+  document.getElementById("autreServiceInput").value = ""; 
+  document.getElementById("serviceModal").classList.remove("hidden");
+}
 
-    <div class="flex-row">
-      <input id="dateDay" type="number" placeholder="JJ" min="1" max="31">
-      <input id="dateMonth" type="number" placeholder="MM" min="1" max="12">
-      <input id="dateYear" type="number" placeholder="AAAA" min="2024" max="2100">
-    </div>
+function fermerServiceModal() {
+  document.getElementById("serviceModal").classList.add("hidden");
+}
 
-    <button onclick="validerDateLimite()">Valider</button>
-    <button onclick="fermerDateModal()">Annuler</button>
-  </div>
-</div>
+function choisirService(s) {
+  if (s === "Autre") {
+    document.getElementById("autreServiceBlock").style.display = "block";
+    return;
+  }
+  currentService = s;
+  fermerServiceModal();
+  _apresService();
+}
+
+function validerAutreService() {
+  const val = document.getElementById("autreServiceInput").value.trim();
+  if (!val) {
+    alert("Veuillez indiquer votre service.");
+    return;
+  }
+  currentService = val;
+  fermerServiceModal();
+  _apresService();
+}
+
+function _apresService() {
+  if (votePendingEtat === "utile") {
+    ouvrirDateModal();
+  } else {
+    envoyerVote(votePendingID, votePendingEtat, null);
+  }
+}
+
+
+// =============================
+// AUTHENTIFICATION OTP
+// =============================
+
+async function authenticateUser() {
+  if (authenticatedEmail) return authenticatedEmail;
+
+  const email = prompt("Entrez votre adresse VINCI (prenom.nom@vinci-construction.com)");
+  if (!email) return null;
+
+  const regexVINCI = /^[a-zA-Z]+(?:[.-][a-zA-Z]+)*@vinci-construction\.com$/;
+  if (!regexVINCI.test(email.trim())) {
+    alert("Adresse mail invalide !");
+    return null;
+  }
+
+  const sendReq = await fetch(SEND_OTP_URL + "&email=" + encodeURIComponent(email));
+  const sendRes = await sendReq.json();
+
+  if (!sendRes.success) {
+    alert("Erreur lors de l'envoi du code.");
+    return null;
+  }
+
+  const otp = prompt("Un code à usage unique vous a été envoyé.\nVeuillez le saisir :");
+  if (!otp) return null;
+
+  const verifyReq = await fetch(
+    VERIFY_OTP_URL +
+    "&email=" + encodeURIComponent(email) +
+    "&otp=" + encodeURIComponent(otp)
+  );
+  const verifyRes = await verifyReq.json();
+
+  if (!verifyRes.valid) {
+    alert("Code incorrect ou expiré.");
+    return null;
+  }
+
+  authenticatedEmail = email.trim();
+  localStorage.setItem("authEmail", authenticatedEmail);
+  alert("Identification réussie !");
+  return authenticatedEmail;
+}
+
+
+// =============================
+// NORMALISATION
+// =============================
+
+function normalize(str) {
+  return String(str)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+
+// =============================
+// INITIALISATION CARTE
+// =============================
+var map = L.map('map', { crs: L.CRS.Simple, minZoom: -2, zoomControl: false });
+var bounds = [[0,0], [4967,7021]];
+L.imageOverlay('carte.jpeg', bounds).addTo(map);
+map.fitBounds(bounds);
+
+map.on("click", function(e) {
+  console.log("X:", Math.round(e.latlng.lat), "Y:", Math.round(e.latlng.lng));
+});
+
+L.Control.HelpButton = L.Control.extend({
+  options: { position: 'topright' },
+
+  onAdd: function () {
+    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+    container.style.background = '#fff';
+    container.style.width = '34px';
+    container.style.height = '34px';
+    container.style.lineHeight = '34px';
+    container.style.textAlign = 'center';
+    container.style.cursor = 'pointer';
+    container.style.fontWeight = 'bold';
+    container.style.fontSize = '18px';
+    container.innerHTML = '?';
+
+    container.onclick = function () {
+      ouvrirHelpToolModal();
+    };
+
+    // Empêche le clic de zoomer la carte
+    L.DomEvent.disableClickPropagation(container);
+
+    return container;
+  }
+});
+
+// Ajout du bouton sur la carte
+new L.Control.HelpButton().addTo(map);
 ``
 
-</body>
-</html>
+// =============================
+// ICONES
+// =============================
+
+function coloredIcon(color) {
+  return new L.Icon({
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+    shadowUrl: "https://unpkg.com/leaflet/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+}
+
+const icons = {
+  utile:      coloredIcon("green"),
+  demontable: coloredIcon("red"),
+  attente:    coloredIcon("grey"),
+  urgent:     coloredIcon("yellow"),
+  expire:     coloredIcon("blue")
+};
+
+// =============================
+// ÉTAT GLOBAL                          Pas encore traité
+// =============================
+
+var currentDate  = new Date().toISOString().split("T")[0];
+
+
+// =============================
+// CHARGEMENT DYNAMIQUE DES MARQUEURS
+// =============================
+
+function afficherLoading() {
+  const el = document.getElementById("loadingOverlay");
+  if (!el) {
+    console.warn("loadingOverlay introuvable dans le DOM");
+    return;
+  }
+  el.classList.remove("hidden");
+}
+
+function masquerLoading() {
+  const el = document.getElementById("loadingOverlay");
+  if (!el) return;
+  el.classList.add("hidden");
+}
+
+
+function chargerMarqueurs(dateRef) {
+
+  afficherLoading();
+
+  // =========================
+  // 1. Nettoyage état courant
+  // =========================
+
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  zonesCenters = {};
+
+  const zoneList = document.getElementById("zoneList");
+  zoneList.innerHTML = "";
+
+  // =========================
+  // 2. Appel API (filtré par date)
+  // =========================
+
+  const url = `${API_URL}?type=points&date=${dateRef}&v=${Date.now()}`;
+
+  fetch(url, { cache: "no-store" })
+    .then(r => r.json())
+    .then(points => {
+
+      if (!Array.isArray(points)) {
+        console.error("Format points invalide :", points);
+        return;
+      }
+
+      // =========================
+      // 3. Création des marqueurs
+      // =========================
+
+      points.forEach(p => {
+
+        const marker = L.marker([p.x, p.y], {
+          icon: icons.attente
+        });
+
+        // --- Données métier liées au marker ---
+        marker.id           = p.id;
+        marker.zone         = p.zone;
+        marker.titre        = p.titre;
+        marker.imageUrl     = p.image;
+        marker.state        = "attente";
+        marker.serviceUtile = null;
+        marker.emailUtile   = null;
+        marker.dateLimite   = null;
+
+        // --- Popup dynamique ---
+        marker.bindPopup(() => popupContent(marker));
+
+        marker.addTo(map);
+        markers.push(marker);
+
+        // =========================
+        // 4. Calcul centre des zones
+        // =========================
+
+        if (!zonesCenters[p.zone]) {
+          zonesCenters[p.zone] = { sumX: 0, sumY: 0, count: 0 };
+        }
+
+        zonesCenters[p.zone].sumX  += p.x;
+        zonesCenters[p.zone].sumY  += p.y;
+        zonesCenters[p.zone].count += 1;
+      });
+
+      // =========================
+      // 5. Construction liste des zones
+      // =========================
+
+      const zones = Object.keys(zonesCenters).sort();
+
+      zones.forEach(zone => {
+        const li = document.createElement("li");
+        li.textContent = zone;
+        li.onclick = () => filtrer(zone);
+        zoneList.appendChild(li);
+      });
+
+      // =========================
+      // 6. Mise à jour indicateur date
+      // =========================
+
+      mettreAJourIndicateurDate(dateRef);
+
+      // =========================
+      // 7. Synchronisation votes / états
+      // =========================
+
+      refreshStates();
+    })
+    .catch(err => {
+      console.error("Erreur chargement échafaudages :", err);
+      alert("Erreur lors du chargement des échafaudages.");
+    })
+    .finally(() => {
+      // 🟢 MASQUER LE LOADER (TOUJOURS)
+      masquerLoading();
+    });
+}
+
+// =============================
+// INDICATEUR DATE
+// =============================
+function mettreAJourIndicateurDate(dateRef) {
+  const today = new Date().toISOString().split("T")[0];
+  const el    = document.getElementById("dateIndicator");
+
+  if (dateRef === today) {
+    el.textContent      = "Aujourd'hui";
+    el.style.background = "#fff";
+    el.style.color      = "#333";
+  } else {
+    const [y, m, d]     = dateRef.split("-");
+    el.textContent      = `📅 Vue du ${d}/${m}/${y}`;
+    el.style.background = "#fff3cd";
+    el.style.color      = "#856404";
+  }
+}
+
+
+// =============================
+// FILTRAGE ZONES
+// =============================
+
+function filtrer(zone) {
+  markers.forEach(function(m) {
+    if (m.zone === zone) map.addLayer(m);
+    else map.removeLayer(m);
+  });
+  var z = zonesCenters[zone];
+  map.setView([z.sumX / z.count, z.sumY / z.count], map.getZoom());
+}
+
+function afficherTous() {
+  markers.forEach(m => map.addLayer(m));
+  map.fitBounds(bounds);
+}
+
+// =============================
+// SIDEBAR
+// =============================
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("closed");
+}
+
+
+// =============================
+// SÉLECTEUR DE DATE
+// =============================
+function onDateChange() {
+  const val = document.getElementById("datePicker").value;
+  if (!val) return;
+  currentDate = val;
+  chargerMarqueurs(currentDate);
+}
+
+function resetToToday() {
+  currentDate = new Date().toISOString().split("T")[0];
+  document.getElementById("datePicker").value = currentDate;
+  chargerMarqueurs(currentDate);
+}
+
+// =============================
+// POPUP DYNAMIQUE
+// =============================
+
+function popupContent(marker) {
+  let infoHTML = "";
+
+  if (marker.state === "utile" && marker.serviceUtile && marker.dateLimite) {
+    infoHTML = `
+      <br>
+      <b>Utile pour ${marker.serviceUtile} jusqu'au ${marker.dateLimite}</b><br>
+      <span style="font-size:12px;color:#555;">
+        Déclaré par : ${marker.emailUtile || "inconnu"}
+      </span>
+      <br><br>
+    `;
+  }
+
+  return `
+    <b>${marker.titre}</b><br>
+    <img src="${marker.imageUrl}" 
+         style="width:300px;border-radius:8px;margin-top:6px;"><br>
+    ${infoHTML}
+    <button onclick="sendVote('${marker.id}','utile')">Utile</button>
+    <button onclick="sendVote('${marker.id}','demontable')">Démontable</button>
+  `;
+}
+
+// =============================
+// CREATION MARQUEURS
+// =============================
+
+var markers = [];
+var zonesCenters = {};
+
+// =============================
+// MODALE DATE
+// =============================
+
+let votePendingID   = null;
+let votePendingEtat = null;
+
+function ouvrirDateModal() {
+  document.getElementById("dateModal").classList.remove("hidden");
+}
+function fermerDateModal() {
+  document.getElementById("dateModal").classList.add("hidden");
+}
+
+function validerDateLimite() {
+  const d = document.getElementById("dateDay").value;
+  const m = document.getElementById("dateMonth").value;
+  const y = document.getElementById("dateYear").value;
+
+  if (!(d && m && y)) {
+    alert("Date incomplète !");
+    return;
+  }
+
+  const iso = `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  fermerDateModal();
+  envoyerVote(votePendingID, votePendingEtat, iso);
+}
+
+function preselectDate(joursAjoutes) {
+  const date = new Date();
+  date.setDate(date.getDate() + joursAjoutes);
+
+  document.getElementById("dateDay").value   = date.getDate();
+  document.getElementById("dateMonth").value = date.getMonth() + 1;
+  document.getElementById("dateYear").value  = date.getFullYear();
+}
+
+// =============================
+// ENVOI DU VOTE
+// =============================
+
+async function sendVote(id, etat) {
+
+  // 1) Authentification
+  const email = await authenticateUser();
+  if (!email) return;
+  currentUser = email;
+
+  // 2) Mémoriser le vote en attente
+  votePendingID   = id;
+  votePendingEtat = etat;
+
+  // 3) Service déjà choisi ?
+  if (!currentService) {
+    ouvrirServiceModal();
+    return;
+  }
+
+  // 4) Service connu → voter directement
+  if (etat === "utile") {
+    ouvrirDateModal();
+  } else {
+    envoyerVote(id, etat, null);
+  }
+}
+
+// =============================
+// ENVOI GOOGLE FORMS
+// =============================
+
+function envoyerVote(id, etat, isoDate) {
+  const body = new URLSearchParams();
+  body.append(GF_ENTRY.id,      id);
+  body.append(GF_ENTRY.service, currentService);
+  body.append(GF_ENTRY.etat,    etat);
+  body.append(GF_ENTRY.email,   currentUser);
+
+  let marker = markers.find(m => m.id === id);
+
+  if (etat === "utile" && isoDate) {
+    marker.serviceUtile = currentService;
+    marker.emailUtile   = currentUser;
+    const [y, mo, d]    = isoDate.split("-");
+    marker.dateLimite   = `${d}/${mo}/${y}`;
+    body.append(GF_ENTRY.date_iso, isoDate);
+  } else {
+    marker.serviceUtile = null;
+    marker.emailUtile   = null;
+    marker.dateLimite   = null;
+  }
+
+  fetch(FORM_ACTION, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+    body
+  })
+  .then(() => {
+    marker.state = etat;
+    marker.setIcon(icons[etat] || icons.attente);
+    // Rafraîchir depuis la Synthese après un court délai
+    setTimeout(refreshStates, 3000);
+  })
+  .catch(err => console.error("Erreur POST:", err));
+}
+
+// =============================
+// RÉCUPÉRATION API (Synthese)
+// =============================
+
+function refreshStates() {
+  fetch(API_URL + "?v=" + Date.now(), { cache: "no-store" })
+    .then(r => r.json())
+    .then(data => {
+
+      markers.forEach(m => {
+        const info = data[m.id];
+
+        if (!info) {
+          m.state = "attente";
+          m.setIcon(icons.attente);
+          return;
+        }
+
+        m.state        = info.etat    || "attente";
+        m.serviceUtile = info.service || null;
+        m.emailUtile   = info.email   || null;
+
+        if (info.date_iso) {
+          const [y, mo, d] = info.date_iso.split("-");
+          m.dateLimite = `${d}/${mo}/${y}`;
+        } else {
+          m.dateLimite = null;
+        }
+
+        if (m.state === "utile") {
+          const isExpire = String(info.expire).toUpperCase() === "TRUE";
+          const isUrgent = String(info.urgent).toUpperCase() === "TRUE";
+
+          if (isExpire) {
+            m.setIcon(icons.expire);
+          } else if (isUrgent) {
+            m.setIcon(icons.urgent);
+          } else {
+            m.setIcon(icons.utile);
+          }
+        } else {
+          m.setIcon(icons[m.state] || icons.attente);
+        }
+
+      });  // ← fermeture markers.forEach manquante
+
+    })
+    .catch(err => console.error("Erreur GET:", err));
+}
+
+refreshStates();
+
+// =============================
+// AIDE
+// =============================
+
+function ouvrirLegendePopup() {
+  document.getElementById("helpModal").classList.remove("hidden");
+}
+function fermerLegendePopup() {
+  document.getElementById("helpModal").classList.add("hidden");
+}
+
+function ouvrirHelpToolModal() {
+  document.getElementById("helpToolModal").classList.remove("hidden");
+}
+
+function fermerHelpToolModal() {
+  document.getElementById("helpToolModal").classList.add("hidden");
+}
+
+// =============================
+// INITIALISATION
+// =============================
+document.getElementById("datePicker").value = currentDate;
+chargerMarqueurs(currentDate);
