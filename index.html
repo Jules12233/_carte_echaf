@@ -15,8 +15,15 @@
 
 <body>
 
-  <!-- Bouton menu / Sidebar -->
+  <!-- Bouton menu -->
   <div id="menuButton" onclick="toggleSidebar()">☰ Zones</div>
+
+  <!-- Sélecteur de date historique -->
+  <div id="dateSelector">
+    <span id="dateIndicator">Aujourd'hui</span>
+    <input type="date" id="datePicker" onchange="onDateChange()">
+    <button onclick="resetToToday()">Aujourd'hui</button>
+  </div>
 
   <div id="sidebar" class="closed">
     <span class="close-btn" onclick="toggleSidebar()">✕</span>
@@ -28,8 +35,7 @@
   <!-- Carte -->
   <div id="map"></div>
 
-  <!-- Données points séparées -->
-  <script src="points.js"></script>
+
   <!-- Logique de la carte -->
   <script src="script.js"></script>
 
@@ -41,7 +47,7 @@
   <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png"> Bientôt expiré</div>
   <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png"> Expiré</div>
 
-  <button id="helpButton" onclick="ouvrirLegendePopup()">Comment ça marche ?</button>
+  <button id="helpButton" onclick="ouvrirLegendePopup()">Logique marqueur</button>
 </div>
 
 <!-- Modale d'aide -->
