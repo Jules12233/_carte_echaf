@@ -45,7 +45,11 @@
 ``
 
   <!-- Logique de la carte -->
-  <script src="script.js"></script>
+  <script src="script/config.js"></script>
+  <script src="script/auth.js"></script>
+  <script src="script/map.js"></script>
+  <script src="script/vote.js"></script>
+  <script src="script/main.js"></script>
 
 <!-- Légende -->
 <div id="legend">
@@ -137,7 +141,31 @@
     <button onclick="fermerDateModal()">Annuler</button>
   </div>
 </div>
-``
+
+<!-- Modale OTP -->
+<div id="otpModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Identification</h3>
+
+    <div id="otpStep1">
+      <p>Entrez votre adresse VINCI :</p>
+      <input id="otpEmail" type="email" placeholder="prenom.nom@vinci-construction.com"
+             style="width:100%; padding:6px; box-sizing:border-box;">
+      <button style="margin-top:8px;" onclick="otpEnvoyerCode()">Envoyer le code</button>
+      <button style="margin-top:4px;" onclick="fermerOtpModal()">Annuler</button>
+    </div>
+
+    <div id="otpStep2" style="display:none;">
+      <p>Un code à usage unique vous a été envoyé.<br>Veuillez le saisir :</p>
+      <input id="otpCode" type="text" placeholder="Code OTP"
+             style="width:100%; padding:6px; box-sizing:border-box; letter-spacing:4px; text-align:center;">
+      <button style="margin-top:8px;" onclick="otpVerifierCode()">Valider</button>
+      <button style="margin-top:4px;" onclick="fermerOtpModal()">Annuler</button>
+    </div>
+
+    <p id="otpMessage" style="color:red; font-size:13px; margin-top:8px;"></p>
+  </div>
+</div>
 
 </body>
 </html>
