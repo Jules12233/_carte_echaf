@@ -32,12 +32,15 @@ html, body {
 }
 #sidebar li:hover { background-color: #f0f0f0; }
 .close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-  font-weight: bold;
-}
+    font-size: 24px;
+    padding: 10px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+  }
 
 /* ====== Boutons ====== */
 #menuButton {
@@ -110,6 +113,7 @@ html, body {
   justify-content: center;
   align-items: center;
   z-index: 3000;
+  padding: 16px;
 }
 
 .hidden { display: none; }
@@ -118,8 +122,11 @@ html, body {
   background: white;
   padding: 20px;
   border-radius: 6px;
+  width: 100%;
   min-width: 280px;
   max-width: 380px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   text-align: left;
   font-size: 14px;
@@ -128,6 +135,8 @@ html, body {
 .modal-content button {
   margin-top: 10px;
   width: 100%;
+  min-height: 44px;
+  font-size: 15px;
 }
 
 /* Modale date */
@@ -155,7 +164,7 @@ html, body {
   top: 15px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1500;
+  z-index: 1050;
   background: white;
   padding: 6px 12px;
   border-radius: 6px;
@@ -172,6 +181,7 @@ html, body {
   border-radius: 4px;
 }
 
+/* ====== Loading ====== */
 .loading {
   position: fixed;
   top: 0;
@@ -200,7 +210,6 @@ html, body {
   font-size: 14px;
 }
 
-/* Spinner */
 .spinner {
   width: 22px;
   height: 22px;
@@ -212,4 +221,137 @@ html, body {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* ====== Popup Leaflet ====== */
+.leaflet-popup-content button {
+  display: inline-block;
+  width: auto;
+  margin: 6px 6px 0 0;
+  padding: 8px 14px;
+  min-height: 40px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+}
+.leaflet-popup-content button:active { background: #0056b3; }
+
+
+/* ============================================
+   MEDIA QUERIES — MOBILE (largeur < 600px)
+   ============================================ */
+
+@media (max-width: 600px) {
+
+
+  #menuButton {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 1100;
+    background: white;
+    padding: 5px 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  }
+
+  /* Sidebar pleine largeur sur mobile */
+  #sidebar {
+    width: 40vw;
+    max-width: 320px;
+  }
+
+  /* Zones : plus faciles à tapper */
+  #sidebar li {
+    padding: 14px 4px;
+    font-size: 12px;
+    min-height: 16px;
+  }
+
+  /* Sélecteur de date : centré, sans débordement */
+  
+  #dateSelector {
+    left: 110px;
+    /*right: 100px;*/
+    transform: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+
+  /* Cacher le texte "Aujourd'hui" sur mobile pour gagner de la place */
+  #dateIndicator {
+    display: none;
+  }
+
+  /* Légende : pleine largeur en bas, items répartis */
+  #legend {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 0;
+    gap: 6px 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px 10px;
+  }
+
+  .legend-item {
+    font-size: 11px;
+  }
+
+  .legend-item img {
+    width: 14px;
+    height: 22px;
+  }
+
+  /* Modales : pleine largeur, scroll si contenu long */
+  .modal {
+    padding: 12px;
+    align-items: center;
+  }
+
+  .modal-content {
+    max-width: 60%;
+    max-height: 85vh;
+    border-radius: 10px;
+    padding: 20px 16px;
+    font-size: 15px;
+  }
+
+  /* Champs de saisie plus grands au toucher */
+  .modal-content input[type="text"],
+  .modal-content input[type="email"],
+  .modal-content input[type="number"] {
+    font-size: 16px; /* évite le zoom auto iOS sur focus */
+    padding: 10px;
+    min-height: 44px;
+  }
+
+  .flex-row input {
+    font-size: 16px;
+    min-height: 44px;
+    padding: 8px 4px;
+  }
+
+  /* Image popup réduite sur mobile */
+  .leaflet-popup-content img {
+    width: 100%;
+    max-width: 240px;
+  }
+
+  /* Boutons popup plus grands */
+  .leaflet-popup-content button {
+    min-height: 16px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
 }
